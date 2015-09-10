@@ -1,0 +1,212 @@
+package domein;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Representatie van het spelbord.
+ *
+ * @author Frederic Everaert
+ * @author Gilles Baert
+ * @author Jonas De Bruycker
+ * @author Sander De Quick
+ */
+public class Spelbord {
+
+    /**
+     * Aantal relevante attributen van een vak; gebiedskaart, sector,
+     * markeringsteken, aantal kamelen.
+     */
+    public static final int AANTAL_ATTR = 4;
+
+    /**
+     * Dimensie van het spelbord.
+     */
+    public static final int DIM = 7;
+
+    /**
+     * Aantal sectoren.
+     */
+    public static final int AANTAL_SECTOREN = 4;
+
+    /**
+     * Aantal vakken per sector.
+     */
+    public static final int VAKKEN_PER_SECTOR = 8;
+
+    /**
+     * Map met gebiedskaart en aantal voorkomens per stuk.
+     *
+     * 1 Zoutwinplaats 4 Nederzetting 6 Guelta 12 Erg 6 Berg 12 Reg 8 FecheFeche
+     * 4 Zoutmeer
+     *
+     * Som is totaal aantal gebiedskaarten.
+     */
+    private final Map<Gebiedskaart, Integer> GEBIEDSKAARTEN_PER_TYPE = new HashMap<Gebiedskaart, Integer>() {
+        {
+            put(Gebiedskaart.ZOUTWINPLAATS, 1);
+            put(Gebiedskaart.NEDERZETTING, 4);
+            put(Gebiedskaart.GUELTA, 6);
+            put(Gebiedskaart.ERG, 12);
+            put(Gebiedskaart.BERG, 6);
+            put(Gebiedskaart.REG, 12);
+            put(Gebiedskaart.FECHEFECHE, 8);
+            put(Gebiedskaart.ZOUTMEER, 4);
+        }
+    };
+
+    /**
+     * 2D representatie van de indeling van het spelbord in sectoren.
+     */
+    private final int[][] sectorenSpelbord
+            = {
+                {0, 0, 0, -1, 1, 1, 1},
+                {0, 0, 0, -1, 1, 1, 1},
+                {0, 0, -1, -1, -1, 1, 1},
+                {-1, -1, -1, -1, -1, -1, -1},
+                {2, 2, -1, -1, -1, 3, 3},
+                {2, 2, 2, -1, 3, 3, 3},
+                {2, 2, 2, -1, 3, 3, 3}
+            };
+
+    private final Vak[][] vakken;
+    private final Sector[] sectoren;
+    private List<Gebiedskaart> gebiedskaarten_geschud;
+    private int aantalGeplaatsteNederzettingen = 0;
+
+    public Spelbord() {
+        // Maakt 4 sectoren aan.
+        sectoren = new Sector[AANTAL_SECTOREN];
+        for (int i = 0; i < AANTAL_SECTOREN; i++) {
+            sectoren[i] = new Sector(i);
+        }
+        // Maakt vakken aan en kent aan ieder vak van het spelbord één sector aan.
+        vakken = new Vak[DIM][DIM];
+        for (int i = 0; i < DIM; i++) {
+            for (int j = 0; j < DIM; j++) {
+                vakken[i][j] = new Vak();
+                if (sectorenSpelbord[i][j] != -1) {
+                    vakken[i][j].setSector(sectoren[sectorenSpelbord[i][j]]);
+                }
+            }
+        }
+    }
+
+    /**
+     * Configuratie van het spelbord.
+     */
+    public void vulSpelbord() {
+        // Schud een List van gebiedskaarttypes.
+        gebiedskaarten_geschud = new ArrayList<>();
+        for (Gebiedskaart gk : Gebiedskaart.values()) {
+            // Behalve zoutwinplaats en nederzetting.
+            if (gk != Gebiedskaart.ZOUTWINPLAATS && gk != Gebiedskaart.NEDERZETTING) {
+                int j = 0;
+                while (j < GEBIEDSKAARTEN_PER_TYPE.get(gk)) {
+                    gebiedskaarten_geschud.add(gk);
+                    j++;
+                }
+            }
+        }
+        Collections.shuffle(gebiedskaarten_geschud);
+        spiraalAlgoritme();
+    }
+
+    private void spiraalAlgoritme() {
+        String richting = "R";
+        int posX = vakken.length / 2;
+        int posY = vakken.length / 2;
+        boolean eindeBereikt = false;
+
+        vakken[posX][posY].setGebied(Gebiedskaart.ZOUTWINPLAATS);
+        int index = 0;
+
+        while (!eindeBereikt) {
+            switch (richting) {
+                case "L":
+                    posY -= 1;
+
+                    vakken[posX][posY].setGebied(gebiedskaarten_geschud.get(index));
+                    index++;
+                    if (vakken[posX - 1][posY].getGebied() == null) { //als element erboven nog null is
+                        richting = "U"; //moeten we naar boven
+                    }
+                    break;
+                case "U":
+                    posX -= 1;
+                    vakken[posX][posY].setGebied(gebiedskaarten_geschud.get(index));
+                    index++;
+                    if (vakken[posX][posY + 1].getGebied() == null) {
+                        richting = "R";
+                    }
+                    break;
+                case "R":
+                    posY += 1;
+                    if (posY >= vakken.length) {
+                        // stoppen
+                        richting = "";
+                        eindeBereikt = true;
+                        break;
+                    }
+                    vakken[posX][posY].setGebied(gebiedskaarten_geschud.get(index));
+                    index++;
+                    if (vakken[posX + 1][posY].getGebied() == null) {
+                        richting = "D";
+                    }
+                    break;
+                case "D":
+                    posX += 1;
+                    vakken[posX][posY].setGebied(gebiedskaarten_geschud.get(index));
+                    index++;
+                    if (vakken[posX][posY - 1].getGebied() == null) {
+                        richting = "L";
+                    }
+                    break;
+            }
+        }
+    }
+
+    /**
+     *
+     * @param speler Spelerobject, verantwoordelijkheid van domeincontroller dat
+     * deze niet NULL is
+     * @param vakX X-coördinaat
+     * @param vakY Y-coördinaat
+     */
+    public void plaatsNederzetting(Speler speler, int vakX, int vakY) throws RuntimeException {
+        if (vakX < 0 || vakX > Spelbord.DIM - 1 || vakY < 0 || vakY > Spelbord.DIM - 1) {
+            throw new IllegalArgumentException("Gelieve geldige coördinaten op te geven.");
+        }
+        if (aantalGeplaatsteNederzettingen > GEBIEDSKAARTEN_PER_TYPE.get(Gebiedskaart.NEDERZETTING) - 1) {
+            throw new RuntimeException("Er zijn al 4 nederzetting geplaatst.");
+        } else {
+            vakken[vakX][vakY].plaatsGebiedskaart(speler, Gebiedskaart.NEDERZETTING);
+            aantalGeplaatsteNederzettingen++;
+        }
+    }
+
+    /**
+     *
+     * @return 2D array van alle vakken van het spelbord.
+     */
+    public Vak[][] getVakken() {
+        return vakken;
+    }
+
+    /**
+     *
+     * @return 2D array van de indeling van het spelbord in sectoren.
+     */
+    public Sector[] getSectoren() {
+        return sectoren;
+    }
+
+    public Vak[] getAdjecenteVakken(int vakX, int vakY) {
+        //TODO magic
+        return null;
+    }
+
+}

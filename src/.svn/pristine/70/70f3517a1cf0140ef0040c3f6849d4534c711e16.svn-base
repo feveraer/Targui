@@ -1,0 +1,4 @@
+Persistentielaag communicatie domeinlaag? (package-private)
+Teken spelbord voordat spelers spelen, game default constructor of niet?
+GetAdjacentSquares verantwoordelijkheid model of GUI?
+Game klasse én een GameModel? (Model heeft enkel getters en setters?)

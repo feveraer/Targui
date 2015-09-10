@@ -1,0 +1,33 @@
+region = gebied
+region.erg = erg
+region.feshfesh = fesh-fesh
+region.guelta = guelta
+region.mountain = berg
+region.rag = reg
+region.saltlake = zoutmeer
+region.saltmine = zoutwinplaats
+region.settlement = nederzetting
+
+econValue = econ waarde
+stratValue = strat waarde
+sector = sector
+player = speler
+camels = kamelen
+
+btn.initBoard = Initialiseer bord
+btn.setRounds = Stel ronden in
+btn.nextRound = Volgende ronde
+btn.skip = Sla beurt over
+
+lbl.numberOfRounds = Totaal aantal ronden
+lbl.currentRound = Huidige ronde
+lbl.numberOfTurns = Totaal aantal beurten deze ronde
+lbl.currentTurn = Huidige beurt
+
+msg.settlement = Plaats de nederzetting van iedere speler
+msg.setRounds = Kies het aantal ronden
+msg.roundStarted = Ronde %d is gestart.
+msg.playerToMove = %s is aan zet.
+
+exp.numberFormat = Vul een getal in!
+exp.incorrectInput = Foute invoer

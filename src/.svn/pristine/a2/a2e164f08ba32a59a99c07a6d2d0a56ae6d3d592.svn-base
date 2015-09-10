@@ -1,0 +1,26 @@
+package exceptions;
+
+/**
+ *
+ * @author Frederic
+ */
+public class DuplicateSectorsException extends IllegalArgumentException {
+
+    /**
+     * Creates a new instance of <code>DuplicateSectorsException</code> without
+     * detail message.
+     */
+    public DuplicateSectorsException() {
+        super();
+    }
+
+    /**
+     * Constructs an instance of <code>DuplicateSectorsException</code> with the
+     * specified detail message.
+     *
+     * @param msg the detail message.
+     */
+    public DuplicateSectorsException(String msg) {
+        super(msg);
+    }
+}

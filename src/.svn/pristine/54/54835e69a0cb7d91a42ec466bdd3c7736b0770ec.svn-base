@@ -1,0 +1,6 @@
+DomainController - move()
+DomainController - purchaseCamels()
+DomainController - getSquaresByPlayer()
+DomainController - getAdjacentSquares()
+Game - cleanup()
+Game - fireStateChanged()

@@ -1,0 +1,84 @@
+package domain;
+
+/**
+ * Represents one player.
+ *
+ * @author Frederic Everaert
+ * @author Gilles Baert
+ * @author Jonas De Bruycker
+ * @author Sander De Quick
+ */
+class Player implements Turn {
+
+    public static final int NUM_OF_ATTR = 4;
+    private final Model model;
+    private String name;
+    private Color color;
+    private int sector;
+    private int silver;
+
+    public Player(String name, Color color, int sector, Model model) {
+        this.model = model;
+        setName(name);
+        setColor(color);
+        setSector(sector);
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) throws IllegalArgumentException {
+        if (name == null || name.isEmpty()) {
+            throw new IllegalArgumentException("String 'name' cannot be empty or null");
+        }
+        if (!name.equals(this.name)) {
+            this.name = name;
+            model.fireStateChanged();
+        }
+    }
+
+    public Color getColor() {
+        return color;
+    }
+
+    public void setColor(Color color) {
+        if (!color.equals(this.color)) {
+            this.color = color;
+            model.fireStateChanged();
+        }
+    }
+
+    public int getSector() {
+        return sector;
+    }
+
+    public void setSector(int sector) throws IllegalArgumentException {
+        if (sector < 0 || sector > Board.NUM_OF_SECTORS - 1) {
+            throw new IllegalArgumentException("Requires an integer between 1 and " + Board.NUM_OF_SECTORS);
+        }
+        if (sector != this.sector) {
+            this.sector = sector;
+            model.fireStateChanged();
+        }
+    }
+
+    public int getSilver() {
+        return silver;
+    }
+
+    public void setSilver(int silver) throws IllegalArgumentException {
+        if (silver < 0) {
+            throw new IllegalArgumentException("Requires a positive integer");
+        }
+        if (silver != this.silver) {
+            this.silver = silver;
+            model.fireStateChanged();
+        }
+    }
+
+    @Override
+    public Turn getTurn() {
+        return this;
+    }
+}

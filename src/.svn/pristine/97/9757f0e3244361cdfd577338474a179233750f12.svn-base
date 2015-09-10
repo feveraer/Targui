@@ -1,0 +1,75 @@
+package gui;
+
+import domain.DomainController;
+import java.awt.FlowLayout;
+import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
+
+/**
+ *
+ * @author Frederic
+ */
+public class GameJFrame extends JFrame {
+
+    private JPanel pnlBoard;
+    private JButton btnNewBoard;
+    private DomainController dc;
+
+    public GameJFrame(final DomainController dc) {
+        this.dc = dc;
+        startNewGame();
+        String[] colors = dc.getColors();
+        int index = 0;
+        //TODO set players
+
+        initComponents();
+    }
+
+    private void initComponents() {
+        pnlBoard = new BoardJPanel(dc);
+        btnNewBoard = new JButton("Initialize board");
+        btnNewBoard.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                btnNewBoardActionPerformed();
+            }
+        });
+
+        setLayout(new FlowLayout());
+        add(pnlBoard);
+        add(btnNewBoard);
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        setLocationByPlatform(true);
+        pack();
+        setVisible(true);
+    }
+
+    private void startNewGame() {
+        dc.newGame();
+    }
+
+    private void setPlayers() {
+
+    }
+
+    private void btnNewBoardActionPerformed() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    dc.initSectors();
+                    dc.populateBoard();
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(GameJFrame.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        }).start();
+    }
+}

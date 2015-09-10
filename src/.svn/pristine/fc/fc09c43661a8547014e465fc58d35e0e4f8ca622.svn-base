@@ -1,0 +1,51 @@
+package gui;
+
+import domain.DomainController;
+import java.awt.GridLayout;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+
+/**
+ *
+ * @author Frederic
+ */
+public class GameJFrame extends JFrame {
+    
+    private JPanel pnlBoard;
+    private DomainController dc;
+
+    public GameJFrame(DomainController dc) {
+        String[] players = new String[]{"p1", "p2", "p3", "p4"};
+        String[] colors = new String[]{"red", "blue", "green", "yellow"};
+        int index = 0;
+        for (String p : players) {
+            dc.addPlayer(p);
+            dc.setPlayerColor(p, colors[index]);
+            dc.setPlayerSector(p, index);
+            index++;
+        }
+        
+        try {
+            dc.newGame(players, 5);
+        } catch (UnsupportedOperationException | IllegalArgumentException | InterruptedException ex) {
+            Logger.getLogger(GameJFrame.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        this.dc = dc;
+        initComponents();
+    }
+    
+    private void initComponents() {
+        pnlBoard = new BoardJPanel(dc);
+        
+        setLayout(new GridLayout(1,1));
+        add(pnlBoard);
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        setLocationByPlatform(true);
+        pack();
+        setVisible(true);
+    }
+    
+    
+}

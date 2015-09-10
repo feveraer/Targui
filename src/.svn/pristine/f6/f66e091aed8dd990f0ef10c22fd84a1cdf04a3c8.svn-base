@@ -1,0 +1,29 @@
+- default
+    DONE
+
+- domain
+    DONE
+
+- ui
+    - fixes
+
+- gui
+    - fixes
+    - import cleanup
+    - javadoc
+    - legende maken
+
+- persistence
+    - javadoc
+
+- properties
+    - vertalingen frans db nog
+    - nakijken
+
+- utils
+    DONE
+
+- ???
+    javadoc ook voor gui en ui
+    moet meertaligheid voor consoleapp
+    wat wordt er bedoeld met ontwerp vd schermen (staat in brochure)

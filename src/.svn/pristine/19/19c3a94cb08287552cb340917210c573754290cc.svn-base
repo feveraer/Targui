@@ -1,0 +1,26 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+package persistentie;
+
+import domein.Spel;
+
+/**
+ *
+ * @author Sander
+ */
+public class Persistentiecontroller {
+
+    public Persistentiecontroller() {
+    SpelMapper spelMapper = new SpelMapper();
+    
+    }
+    
+    
+    public void bewaarSpel(Spel spel){
+        
+    }
+}

@@ -1,0 +1,124 @@
+package domein;
+
+/**
+ * Representeert één volledig spel.
+ *
+ * @author Frederic Everaert
+ * @author Gilles Baert
+ * @author Jonas De Bruycker
+ * @author Sander De Quick
+ */
+public class Spel {
+
+    public static enum KLEUREN {
+
+        ROOD,
+        GEEL,
+        BLAUW,
+        GROEN;
+    }
+
+    private boolean spelbordGevuld = false;
+    private final Spelbord spelbord = new Spelbord();
+    private final Speler[] spelers;
+
+    private Ronde ronde;
+    private final int MAX_AANTAL_RONDEN = 16;
+    private int aantalRonden;
+    private int huidigeRonde = 0;
+
+    private Noodlotskaart kaart;
+
+    /**
+     *
+     * @param spelers
+     */
+    public Spel(Speler[] spelers) {
+        this.spelers = spelers;
+    }
+
+    /**
+     * Configuratie van het spelbord.
+     */
+    public void vulSpelbord() {
+        spelbord.vulSpelbord();
+        spelbordGevuld = true;
+    }
+
+    /**
+     * Plaatst een gebiedskaart van het type nederzetting op een specifiek vak.
+     *
+     * @param speler Spelerobject
+     * @param vakX X-coördinaat van het gewenste vak
+     * @param vakY Y-coördinaat van het gewenste vak
+     */
+    public void plaatsNederzetting(Speler speler, int vakX, int vakY) {
+        spelbord.plaatsNederzetting(speler, vakX, vakY);
+    }
+
+    /**
+     * Legt het aantal ronden vast.
+     *
+     * @param aantalRonden
+     */
+    public void kiesAantalRonden(int aantalRonden) {
+        if (aantalRonden < 0 || aantalRonden > MAX_AANTAL_RONDEN) {
+            throw new IllegalArgumentException("Gelieve een geldig aantal ronden op te geven");
+        } else {
+            this.aantalRonden = aantalRonden;
+            kaart = new Noodlotskaart(this, aantalRonden);
+        }
+    }
+
+    /**
+     *
+     */
+    public void speelRonde() {
+        ronde = new Ronde(spelers, kaart.getGeschud()[huidigeRonde]);
+        huidigeRonde += 1;
+        for (Beurt beurten : ronde.getBeurten()) {
+            
+        }
+    }
+    
+    /**
+     *
+     * @return 
+     */
+    public Ronde getRonde() {
+        return ronde;
+    }
+
+    /**
+     *
+     * @return 2D array representatie van het spelbord
+     */
+    public Spelbord getSpelbord() {
+        return spelbord;
+    }
+
+    /**
+     *
+     * @return is het spelbord al opgevuld of niet
+     */
+    public boolean isSpelbordGevuld() {
+        return spelbordGevuld;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public String geefEindresultaatRonde() {
+        return ronde.toString();
+    }
+
+    /**
+     *
+     * @return
+     */
+    public Speler[] getSpelers() {
+        return spelers;
+    }
+
+}

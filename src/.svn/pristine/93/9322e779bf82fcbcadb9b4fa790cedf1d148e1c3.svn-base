@@ -1,0 +1,35 @@
+
+package gui;
+
+import domein.Domeincontroller;
+import domein.Speler;
+
+/**
+ *
+ * @author Frederic
+ */
+public class ConsoleApplicatie {
+    
+    public ConsoleApplicatie(Domeincontroller dc) {
+        dc.startNieuwSpel();
+        dc.maakSpelerAan("Jonas", "rood", 0);
+        dc.maakSpelerAan("Gilles", "groen", 1);
+        dc.maakSpelerAan("Sander", "geel", 2);
+        dc.maakSpelerAan("Frederic", "blauw", 3);
+        
+        printSpeler(dc.geefSpeler("Frederic"));
+        printSpeler(dc.geefSpeler("Gilles"));
+        printSpeler(dc.geefSpeler("Sander"));
+        printSpeler(dc.geefSpeler("Jonas"));
+    }
+    
+    public void printSpeler(String[] speler) {
+        System.out.printf("SPELER: %s\n"
+                + "KLEUR: %s\n"
+                + "SECTOR: %s\n"
+                + "GELDSTKN: %s\n", speler[0], speler[1], speler[2], speler[3]);
+        System.out.println("=====================");
+    }
+    
+    
+}

@@ -1,0 +1,96 @@
+package domein;
+
+/**
+ * Domeincontroller van Targui.
+ *
+ * @author Frederic Everaert
+ * @author Gilles Baert
+ * @author Jonas De Bruycker
+ * @author Sander De Quick
+ */
+public class Domeincontroller {
+
+    private final SpelerRepository repo = new SpelerRepository();
+    private Spel spel;
+
+    /**
+     * Initialiseert een nieuw spel.
+     */
+    public void startNieuwSpel() {
+        spel = new Spel();
+    }
+
+    /**
+     * Geeft een visuele representatie van de indeling van het spelbord weer.
+     *
+     * @return 2D array van de sectoren
+     */
+    public int[][] geefSectoren() {
+        return spel.getSpelbord().getSectoren();
+    }
+
+    /**
+     * Retourneert het huidig spelobject. De volgorde van de attributen is:
+     * gebiedskaart, sector , markeringsteken, aantal kamelen.
+     *
+     * @return 3D array van het spelbord en relevante attributen.
+     */
+    public String[][][] geefSpel() {
+        Vak[][] spelbord = spel.geefSpel();
+        String[][][] res = new String[Spelbord.DIM][Spelbord.DIM][Spelbord.NUM_OF_ATTR];
+        for (int i = 0; i < res.length; i++) {
+            for (int j = 0; j < res[i].length; j++) {
+                res[i][j][0] = spelbord[i][j].getGebied().toString();
+                try {
+                    res[i][j][1] = Integer.toString(spelbord[i][j].getSector().getSectorNr());
+                } catch (NullPointerException e) {
+                    res[i][j][1] = "-1";
+                }
+                res[i][j][2] = spelbord[i][j].getMarkeringsteken();
+                res[i][j][3] = Integer.toString(spelbord[i][j].getAantalKamelen());
+            }
+        }
+        return res;
+    }
+
+    /**
+     * Retourneert de huidige spelers. De volgorde van de attributen is: naam,
+     * kleur , sector, aantal geldstukken.
+     *
+     * @return
+     */
+    public String[][] geefSpelers() {
+        String[][] sp = new String[SpelerRepository.MAX_PLAYERS][Speler.NUM_OF_ATTR];
+        Speler[] spelers = repo.geefSpelers();
+        for (int i = 0; i < SpelerRepository.MAX_PLAYERS; i++) {
+            sp[i][0] = spelers[i].getNaam();
+            sp[i][1] = spelers[i].getKleur();
+            sp[i][2] = Integer.toString(spelers[i].getSector().getSectorNr());
+            sp[i][3] = Integer.toString(spelers[i].getGeldstukken());
+        }
+        return sp;
+    }
+
+    /**
+     * Maakt een nieuwe speler aan.
+     *
+     * @param naam Gewenste naam, geen nullstring. @see Speler
+     * @param kleur Gewenste kleur, moet bestaande kleur zijn. @see Kleuren
+     * @param sector Gewenste sector, moet bestaande sector zijn. @see Sector
+     */
+    public void maakSpelerAan(String naam, String kleur, int sector) {
+        repo.maakSpelerAan(naam, kleur, sector);
+    }
+
+    /**
+     * Plaatst een gebiedskaart van het type nederzetting op een specifiek vak.
+     *
+     * @param spelerNr Nummer van de speler
+     * @param vakX X-coördinaat van het gewenste vak
+     * @param vakY Y-coördinaat van het gewenste vak
+     */
+    public void plaatsNederzetting(int spelerNr, int vakX, int vakY) {
+        spel.plaatsNederzetting(spelerNr, vakX, vakY);
+    }
+
+}

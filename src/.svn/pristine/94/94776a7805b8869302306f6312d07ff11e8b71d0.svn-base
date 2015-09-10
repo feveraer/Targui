@@ -1,0 +1,29 @@
+- default
+    DONE
+
+- domein:
+    - save error check
+    - load implementatie
+    - gelijkspel victory condition
+    - javadoc
+
+- gui:
+    - nieuwe speler: lijst van mogelijke kleuren, lijst van mogelijke sectoren (ok)
+        kleuren tonen i.p.v. omschrijving
+    - gamelog die weergeeft wat er gebeurt ipv joptionpane popups
+    - volgende beurt automatisch laten volgen
+    - optie om kamelen te kunnen kopen niet geven als speler geen geldstukken meer heeft
+    - 3 talen
+    - kamelen op een vak grafisch tonen, aangepaste strat en econ waarden ook
+    - menu bar (game, options, help)
+    - load game
+    - javadoc
+
+- persistence
+    - javadoc
+
+- properties
+
+- utils
+    - javadoc
+

@@ -1,0 +1,67 @@
+package gui;
+
+import domein.Domeincontroller;
+import domein.SpelerRepository;
+import javax.swing.JOptionPane;
+
+/**
+ *
+ * @author Frederic
+ */
+public class ConsoleApplicatie {
+
+    Domeincontroller dc;
+
+    public ConsoleApplicatie(Domeincontroller dc) {
+
+        this.dc = dc;
+        dc.startNieuwSpel();
+        String naam;
+        String kleur;
+        int sector;
+        boolean[] juisteInvoer = {false, false, false, false};
+
+        for (int i = 0; i < SpelerRepository.MAX_PLAYERS; i++) {
+            while (!juisteInvoer[i]) {
+                try {
+                    naam = JOptionPane.showInputDialog(null, "Geef naam speler " + (i + 1));
+                    kleur = JOptionPane.showInputDialog(null, "Geef kleur speler " + (i + 1));
+                    sector = Integer.parseInt(JOptionPane.showInputDialog(null, "Geef sector speler " + (i + 1)));
+                    dc.maakSpelerAan(naam, kleur, sector - 1);
+                    juisteInvoer[i] = true;
+                } catch (IllegalArgumentException exp) {
+                    JOptionPane.showMessageDialog(null, exp.getMessage(), "Fout!", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        }
+
+        dc.vulSpelbord();
+        dc.geefSpel();
+
+        int vakX;
+        int vakY;
+
+        for (int i = 0; i < SpelerRepository.MAX_PLAYERS; i++) {
+            vakX = Integer.parseInt(JOptionPane.showInputDialog("Geef X waarde nederzetting, Speler " + i));
+            vakY = Integer.parseInt(JOptionPane.showInputDialog("Geef Y waarde nederzetting, Speler " + i));
+            dc.plaatsNederzetting(i, vakX, vakY);
+        }
+
+        for (int i = 0; i < SpelerRepository.MAX_PLAYERS; i++) {
+            printSpeler(dc.geefSpeler(i));
+        }
+    }
+
+    public void printSpeler(String[] speler) {
+        System.out.printf("SPELER: %s\n"
+                + "KLEUR: %s\n"
+                + "SECTOR: %s\n"
+                + "GELDSTKN: %s\n", speler[0], speler[1], speler[2], speler[3]);
+        System.out.println("=====================");
+    }
+
+    public void printSpel() {
+        dc.geefSpel();
+        //TO DO print het spel als controle
+    }
+}

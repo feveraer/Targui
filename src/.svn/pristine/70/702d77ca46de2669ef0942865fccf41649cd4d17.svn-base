@@ -1,0 +1,480 @@
+package domain;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import utils.Collections;
+
+/**
+ * Represents the board.
+ *
+ * @author Frederic Everaert
+ * @author Gilles Baert
+ * @author Jonas De Bruycker
+ * @author Sander De Quick
+ */
+class Board {
+
+    /**
+     * Dimension of the board (Default 7).
+     */
+    public static final int DIM = 7;
+    /**
+     * Number of sectors (Default 4).
+     */
+    public static final int NUM_OF_SECTORS = 4;
+    /**
+     * Number of squares per sector (Default 8).
+     */
+    public static final int SQUARES_PER_SECTOR = 8;
+
+    // Hashmap mapping a specific region type to the number of times that region may occur on the board.
+    // There must be at least DIM*2 available region cards.
+    private final Map<Region, Integer> REGIONS_PER_TYPE = new HashMap<Region, Integer>() {
+        {
+            put(Region.SALTMINE, 1);    // Default 1
+            put(Region.SETTLEMENT, 4);  // Default 4
+            put(Region.GUELTA, 6);      // Default 6
+            put(Region.ERG, 12);        // Default 12
+            put(Region.MOUNTAIN, 6);    // Default 6
+            put(Region.RAG, 12);        // Default 12
+            put(Region.FESHFESH, 8);    // Default 8
+            put(Region.SALTLAKE, 4);    // Default 4
+        }
+    };
+
+    // 2D Array representing the sector layout of the board.
+    private static final int[][] SECTORS
+            = {
+                {0, 0, 0, -1, 1, 1, 1},
+                {0, 0, 0, -1, 1, 1, 1},
+                {0, 0, -1, -1, -1, 1, 1},
+                {-1, -1, -1, -1, -1, -1, -1},
+                {2, 2, -1, -1, -1, 3, 3},
+                {2, 2, 2, -1, 3, 3, 3},
+                {2, 2, 2, -1, 3, 3, 3}
+            };
+
+    private final Square[][] squares;
+    private Region[] regionsShuffled;
+    private int placedSettlements = 0;
+    private boolean boardFilled = false;
+    private Square safeSquare;
+    private Square attackedSquare;
+
+    /**
+     * An implementation of model must be given upon creating an instance of
+     * Board.
+     *
+     * @param model
+     */
+    public Board(Model model) {
+        squares = new Square[DIM][DIM];
+        for (int i = 0; i < DIM; i++) {
+            for (int j = 0; j < DIM; j++) {
+                squares[i][j] = new Square(model);
+            }
+        }
+    }
+
+    /**
+     * Clears the board.
+     */
+    public void clear() {
+        for (int i = 0; i < DIM; i++) {
+            for (int j = 0; j < DIM; j++) {
+                squares[i][j].setCamels(0);
+                squares[i][j].setPlayer(null);
+                squares[i][j].setRegion(null);
+            }
+        }
+        placedSettlements = 0;
+    }
+
+    /**
+     * Initializes the sectors. The board and all squares must be initialized
+     * before this method may be called.
+     */
+    public void initSectors() {
+        for (int i = 0; i < DIM; i++) {
+            for (int j = 0; j < DIM; j++) {
+                squares[i][j].setSector(SECTORS[i][j]);
+            }
+        }
+    }
+
+    /**
+     * Changes the properties of a certain square.
+     *
+     * @param sqX The x-coordinate of the square to be changed.
+     * @param sqY The y-coordinate of the square to be changed.
+     * @param region
+     * @param camels The amount of camels currently residing on the square.
+     * @param player The player who owns the square.
+     * @param sector The sector in which the square resides in.
+     */
+    public void populateSquare(int sqX, int sqY, Region region, int camels, Player player, int sector) {
+        squares[sqX][sqY].setSector(sector);
+        squares[sqX][sqY].setRegion(region);
+        squares[sqX][sqY].setCamels(camels);
+        squares[sqX][sqY].setPlayer(player);
+    }
+
+    /**
+     * Set if the board is filled (i.e. every square has it's region set).
+     *
+     * @param flag
+     */
+    public void setBoardFilled(boolean flag) {
+        boardFilled = flag;
+    }
+
+    /**
+     * Returns if the board is filled or not.
+     *
+     * @return
+     */
+    public boolean isBoardFilled() {
+        return boardFilled;
+    }
+
+    /**
+     * Populates the board. Allocates a region to every square using a custom
+     * spiral algorithm.
+     *
+     * @param ms Amount of milliseconds to wait between region allocations.
+     * @throws java.lang.InterruptedException
+     */
+    public void populateBoard(int ms) throws InterruptedException {
+        regionsShuffled = new Region[DIM * DIM - 1];
+        int index = 0;
+        for (Region r : Region.values()) {
+            if (r != Region.SALTMINE && r != Region.SETTLEMENT) {
+                int regionPerType = 0;
+                while (regionPerType < REGIONS_PER_TYPE.get(r)) {
+                    regionsShuffled[index] = r;
+                    regionPerType++;
+                    index++;
+                }
+            }
+        }
+        Collections.shuffle(regionsShuffled, 1);
+        spiralAlgorithm(ms);
+        boardFilled = true;
+    }
+
+    /**
+     * Custom implementation of a spiral algorithm.
+     *
+     * @param ms
+     * @throws InterruptedException
+     */
+    private void spiralAlgorithm(int ms) throws InterruptedException {
+        String direction = "R";
+        int posX = squares.length / 2;
+        int posY = squares.length / 2;
+        boolean end = false;
+
+        squares[posX][posY].setRegion(Region.SALTMINE);
+        int index = 0;
+
+        while (!end) {
+            Thread.sleep(ms);
+            switch (direction) {
+                case "L":
+                    posY -= 1;
+
+                    squares[posX][posY].setRegion(regionsShuffled[index]);
+                    index++;
+                    if (squares[posX - 1][posY].getRegion() == null) {
+                        direction = "U";
+                    }
+                    break;
+                case "U":
+                    posX -= 1;
+                    squares[posX][posY].setRegion(regionsShuffled[index]);
+                    index++;
+                    if (squares[posX][posY + 1].getRegion() == null) {
+                        direction = "R";
+                    }
+                    break;
+                case "R":
+                    posY += 1;
+                    if (posY >= squares.length) {
+                        direction = "";
+                        end = true;
+                        break;
+                    }
+                    squares[posX][posY].setRegion(regionsShuffled[index]);
+                    index++;
+                    if (squares[posX + 1][posY].getRegion() == null) {
+                        direction = "D";
+                    }
+                    break;
+                case "D":
+                    posX += 1;
+                    squares[posX][posY].setRegion(regionsShuffled[index]);
+                    index++;
+                    if (squares[posX][posY - 1].getRegion() == null) {
+                        direction = "L";
+                    }
+                    break;
+
+            }
+        }
+    }
+
+    /**
+     * Makes a certain square owned by the player and replaces the region with
+     * the Settlement type.
+     *
+     * @param player The player of which the square must belong to.
+     * @param x The x-coordinate of the square to be changed.
+     * @param y The y-coordinate of the square to be changed.
+     */
+    public void placeSettlement(Player player, int x, int y) throws UnsupportedOperationException, IllegalArgumentException {
+        if (x < 0 || x > Board.DIM || y < 0 || y > Board.DIM) {
+            throw new IllegalArgumentException(String.format("exp.illegalCoordinates %d", (DIM - 1)));
+        }
+        if (placedSettlements > REGIONS_PER_TYPE.get(Region.SETTLEMENT) - 1) {
+            throw new UnsupportedOperationException("exp.maxSettlements");
+        }
+        if (squares[x][y].getSector() != player.getSector()) {
+            throw new IllegalArgumentException(String.format("exp.illegalSector", player.getName()));
+        } else {
+            squares[x][y].setRegion(Region.SETTLEMENT);
+            squares[x][y].setPlayer(player);
+            squares[x][y].setCamels(10);
+            placedSettlements++;
+        }
+    }
+
+    /**
+     * Moves an indicated amount of camels from one square to an adjacent one
+     * and transfers ownership to the player.
+     *
+     * It is the responsability of the client application to verify that the
+     * square indicated is, indeed, owned by the player.
+     *
+     * @param player The player of which the square must belong to.
+     * @param xFrom The x-coordinate of the square from which will be moved.
+     * @param yFrom The y-coordinate of the square from which will be moved.
+     * @param xTo The x-coordinate of the square which will be moved to.
+     * @param yTo The y-coordinate of the square which will be moved to.
+     * @param numberOfCamels The amount of camels that will move.
+     */
+    public void move(Player player, int xFrom, int yFrom, int xTo, int yTo, int numberOfCamels) {
+        if (xFrom < 0 || xFrom >= DIM || yFrom < 0 || yFrom >= DIM || xTo < 0 || xTo >= DIM || yTo < 0 || yTo >= DIM) {
+            throw new IllegalArgumentException(String.format("exp.illegalCoordinates %d", (DIM - 1)));
+        }
+        if (numberOfCamels < 1) {
+            throw new IllegalArgumentException("exp.moveCamel");
+        }
+        Square sq1 = squares[xFrom][yFrom];
+        Square sq2 = squares[xTo][yTo];
+        if (sq1.getCamels() < numberOfCamels) {
+            throw new IllegalArgumentException(String.format("exp.illegalMoveAmount %d", sq1.getCamels()));
+        }
+        sq1.setCamels(sq1.getCamels() - numberOfCamels);
+        sq2.setCamels(sq2.getCamels() + numberOfCamels);
+        if (numberOfCamels > 0) {
+            sq2.setPlayer(player);
+        }
+
+    }
+
+    /**
+     * Trades a specified amount of silver owned by a player for a specified
+     * amount of camels, to be placed on a square of choice owned by the player.
+     *
+     * It is the responsability of the client application to verify that the
+     * square indicated is, indeed, owned by the player.
+     *
+     * @param p
+     * @param x The x-coordinate of the square where the camels will be placed.
+     * @param y The y-coordinate of the square where the camels will be placed.
+     * @param numberOfCamels The amount of camels that will be purchased.
+     */
+    public void purchaseCamels(Player p, int x, int y, int numberOfCamels) {
+        if (x < 0 || x >= DIM || y < 0 || y >= DIM) {
+            throw new IllegalArgumentException(String.format("exp.illegalCoordinates %d", (Board.DIM - 1)));
+        }
+        if (numberOfCamels < 0) {
+            throw new IllegalArgumentException("exp.positiveInteger");
+        }
+        if (p.getSilver() < numberOfCamels) {
+            throw new IllegalArgumentException(String.format("exp.illegalPurchase %s %d", p.getName(), numberOfCamels));
+        }
+        squares[x][y].setCamels(squares[x][y].getCamels() + numberOfCamels);
+        p.setSilver(p.getSilver() - numberOfCamels);
+    }
+
+    /**
+     * Starts an attack.
+     *
+     * @param player The player that is initializing the attack.
+     * @param xFrom The x-coordinate of the square from which will be attacked.
+     * @param yFrom The y-coordinate of the square from which will be attacked.
+     * @param xTo The x-coordinate of the square which will be attacked.
+     * @param yTo The y-coordinate of the square which will be attacked.
+     */
+    public void initiateAttack(Player player, int xFrom, int yFrom, int xTo, int yTo) {
+        if (xFrom < 0 || xFrom >= Board.DIM || yFrom < 0 || yFrom >= Board.DIM || xTo < 0 || xTo >= Board.DIM || yTo < 0 || yTo >= Board.DIM) {
+            throw new IllegalArgumentException(String.format("exp.illegalCoordinates %d", (Board.DIM - 1)));
+        }
+        Square sq1 = squares[xFrom][yFrom];
+        Square sq2 = squares[xTo][yTo];
+
+        if (sq2.getPlayer() == null || sq2.getPlayer() == sq1.getPlayer()) {
+            throw new IllegalArgumentException("exp.illegalAttack");
+        }
+
+        safeSquare = sq1;
+        attackedSquare = sq2;
+    }
+
+    /**
+     * Executes one subround of an attack.
+     *
+     * battleStatus[0]: status of attack: 0 = attacking player won, 1 =
+     * defending player held, 2 = both areas still have camels. battleStatus[1]:
+     * Diceroll by attacking player. battleStatus[2]: Number of killed camels on
+     * attacking square. battleStatus[3]: Diceroll by defending player.
+     * battleStatus[4]: Number of killed camels on safe square.
+     *
+     * @param player
+     * @return battleStatus
+     */
+    public int[] attack(Player player) {
+        int[] battleStatus = new int[5];
+        Random rnd = new Random();
+        if (attackedSquare.getCamels() <= 0) {
+            attackedSquare.setPlayer(player);
+            battleStatus[0] = -1;
+            battleStatus[1] = 0;
+            battleStatus[2] = 0;
+            battleStatus[3] = 0;
+            battleStatus[4] = 0;
+            return battleStatus;
+        } else {
+            // Defender loses camels
+            int attDiceroll = rnd.nextInt(6) + 1;
+            int attSqDeadCamels = (attDiceroll + attackedSquare.getRegion().getCurrentStratValue()) / 2;
+            attackedSquare.setCamels(attackedSquare.getCamels() - attSqDeadCamels);
+            if (attackedSquare.getCamels() <= 0) {
+                attackedSquare.setPlayer(player);
+                battleStatus[0] = 0;
+                battleStatus[1] = attDiceroll;
+                battleStatus[2] = attSqDeadCamels;
+                battleStatus[3] = 0;
+                battleStatus[4] = 0;
+                return battleStatus;
+            }
+            // Attacker loses camels
+            int defDiceroll = rnd.nextInt(6) + 1;
+            int defSqDeadCamels = (defDiceroll + attackedSquare.getRegion().getCurrentStratValue()) / 2;
+            safeSquare.setCamels(safeSquare.getCamels() - defSqDeadCamels);
+            if (safeSquare.getCamels() <= 0) {
+                battleStatus[0] = 1;
+                battleStatus[1] = attDiceroll;
+                battleStatus[2] = attSqDeadCamels;
+                battleStatus[3] = defDiceroll;
+                battleStatus[4] = defSqDeadCamels;
+                return battleStatus;
+            }
+            battleStatus[0] = 2;
+            battleStatus[1] = attDiceroll;
+            battleStatus[2] = attSqDeadCamels;
+            battleStatus[3] = defDiceroll;
+            battleStatus[4] = defSqDeadCamels;
+            return battleStatus;
+        }
+    }
+
+    /**
+     * Moves an amount of camels after the battle is won. Must be called after a
+     * battle is won by the player in order to move camels to the newly
+     * conquered square.
+     *
+     * @param player
+     * @param numberOfCamels
+     */
+    public void moveCamelsAfterWonBattle(Player player, int numberOfCamels) {
+        if (numberOfCamels < 0) {
+            throw new IllegalArgumentException("exp.moveCamel");
+        }
+        if (numberOfCamels > safeSquare.getCamels()) {
+            throw new IllegalArgumentException(String.format("exp.camelsLeft %d", safeSquare.getCamels()));
+        }
+        safeSquare.setCamels(safeSquare.getCamels() - numberOfCamels);
+        attackedSquare.setCamels(numberOfCamels);
+    }
+
+    /**
+     * Returns a list of squares by region.
+     *
+     * @param region
+     * @return
+     */
+    public List<Square> getSquaresByRegion(Region region) {
+        List<Square> squaresByRegion = new ArrayList<>();
+        for (Square[] row : squares) {
+            for (Square sq : row) {
+                if (sq.getRegion().equals(region)) {
+                    squaresByRegion.add(sq);
+                }
+            }
+        }
+        return squaresByRegion;
+    }
+
+    /**
+     * Returns all squares on the board.
+     *
+     * @return
+     */
+    public Square[][] getSquares() {
+        return squares;
+    }
+
+    /**
+     * Returns sectors.
+     *
+     * @return
+     */
+    public static int[][] getSectors() {
+        return SECTORS;
+    }
+
+    /**
+     * Returns the adjacent squares of an indicated square. Used to return a
+     * list of squares (by coordinates) to indicate where a player can move to.
+     *
+     * @param x
+     * @param y
+     * @return
+     */
+    public List<int[]> getAdjacentSquares(int x, int y) {
+        if (x < 0 || x >= DIM || y < 0 || y >= DIM) {
+            throw new IllegalArgumentException(String.format("exp.illegalCoordinates %d", (Board.DIM - 1)));
+        }
+        List<int[]> sq = new ArrayList<>();
+        int[] e;
+        for (int i = x - 1; i <= x + 1 && i < DIM; i++) {
+            for (int j = y - 1; j <= y + 1 && j < DIM; j++) {
+                if (i >= 0 && j >= 0 && squares[i][j].getRegion() != Region.SALTLAKE) {
+                    if (i != x || j != y) {
+                        e = new int[2];
+                        e[0] = i;
+                        e[1] = j;
+                        sq.add(e);
+                    }
+                }
+            }
+        }
+        return sq;
+    }
+
+}

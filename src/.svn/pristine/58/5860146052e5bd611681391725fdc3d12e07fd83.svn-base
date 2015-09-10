@@ -1,0 +1,32 @@
+package domein;
+
+/**
+ * Representeert één beurt in een ronde.
+ *
+ * @author Frederic Everaert
+ * @author Gilles Baert
+ * @author Jonas De Bruycker
+ * @author Sander De Quick
+ */
+public class Beurt {
+
+    private final Speler speler;
+    private final Actie noodlotskaart;
+    
+    public Beurt(Speler speler, Actie noodlotskaart) {
+        this.speler = speler;
+        this.noodlotskaart = noodlotskaart;
+    }
+
+    /**
+     * @return speler
+     */
+    public Object getResultaat() {
+        if(noodlotskaart == null) {
+            return speler;
+        } else {
+            return noodlotskaart;
+        }
+    }
+            
+}

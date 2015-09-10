@@ -1,0 +1,76 @@
+package domein;
+
+/**
+ * Represents one player.
+ *
+ * @author Frederic Everaert
+ * @author Gilles Baert
+ * @author Jonas De Bruycker
+ * @author Sander De Quick
+ */
+public class Player {
+
+    public static final int NUM_OF_ATTR = 4;
+    private Model model;
+    private String name;
+    private String color;
+    private Sector sector;
+    private int silver = 0;
+
+    public Player(String name, Model model) throws IllegalArgumentException {
+        if (name == null || name.isEmpty()) {
+            throw new IllegalArgumentException("String 'name' cannot be empty or null");
+        }
+        this.name = name;
+        this.model = model;
+        model.fireStateChanged();
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        if (!name.equals(this.name)) {
+            this.name = name;
+            model.fireStateChanged();
+        }
+    }
+
+    public String getColor() {
+        return color;
+    }
+
+    public void setColor(String color) {
+        if (!Color.contains(color)) {
+            throw new IllegalArgumentException(color + " is not a supported color");
+        }
+        if (!color.equals(this.color)) {
+            this.color = color;
+            model.fireStateChanged();
+        }
+    }
+
+    public Sector getSector() {
+        return sector;
+    }
+
+    public void setSector(Sector sector) {
+        if (sector != this.sector) {
+            this.sector = sector;
+            model.fireStateChanged();
+        }
+    }
+
+    public int getSilver() {
+        return silver;
+    }
+
+    public void setSilver(int silver) {
+        if (silver != this.silver) {
+            this.silver = silver;
+            model.fireStateChanged();
+        }
+    }
+
+}

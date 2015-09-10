@@ -1,0 +1,112 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package persistence;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+/**
+ *
+ * @author Sander
+ */
+class GameMapper {
+
+    public GameMapper() {
+    }
+
+    public void saveGame(String[] gameConf, String gameNaam) {
+        String values = "";
+        for (int i = 0; i < gameConf.length; i++) {
+            values += "'" + gameConf[i] + "'";
+            if (i < gameConf.length - 1) {
+                values += ",";
+            }
+        }
+
+        try {
+            String host = "jdbc:mysql://localhost:3306/targui";
+            String uName = "root";
+            String uPass = "root";
+            Connection con = DriverManager.getConnection(host, uName, uPass);
+            Statement stmt = con.createStatement();
+            String SQL = "INSERT INTO game VALUES (" + values + ")";
+            stmt.executeUpdate(SQL);
+        } catch (SQLException ex) {
+            Logger.getLogger(GameMapper.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    public String getNextGameId() {
+        String gameId = "";
+        try {
+            String host = "jdbc:mysql://localhost:3306/targui";
+            String uName = "root";
+            String uPass = "root";
+            Connection con = DriverManager.getConnection(host, uName, uPass);
+            Statement stmt = con.createStatement();
+            String SQL = "SELECT MAX(gameId) + 1 FROM game";
+            ResultSet rs = stmt.executeQuery(SQL);
+            if (rs.next()) {
+                gameId = rs.getString(1);
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(PersistenceController.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        if (gameId == null) {
+            return "0";
+        } else {
+            return gameId;
+        }
+    }
+
+    public boolean containsGameName(String gameName) {
+        boolean contains = false;
+        try {
+            String host = "jdbc:mysql://localhost:3306/targui";
+            String uName = "root";
+            String uPass = "root";
+            Connection con = DriverManager.getConnection(host, uName, uPass);
+            Statement stmt = con.createStatement();
+            String SQL = "SELECT * FROM game WHERE gameName = '" + gameName + "'";
+            ResultSet rs = stmt.executeQuery(SQL);
+            if (rs.next()) {
+                contains = true;
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(PersistenceController.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return contains;
+    }
+
+    public String[] getGame(String gameName) {
+        try {
+            String host = "jdbc:mysql://localhost:3306/targui";
+            String uName = "root";
+            String uPass = "root";
+            Connection con = DriverManager.getConnection(host, uName, uPass);
+            Statement stmt = con.createStatement();
+            String SQL = "SELECT * FROM game WHERE gameName = '" + gameName + "'";
+            ResultSet rs = stmt.executeQuery(SQL);
+
+            String[] gameConf = new String[4];
+            while (rs.next()) {
+                gameConf[0] = rs.getString("gameId");
+                gameConf[1] = rs.getString("gameName");
+                gameConf[2] = rs.getString("nrOfRounds");
+                gameConf[3] = rs.getString("currentRound");
+            }
+            return gameConf;
+        } catch (SQLException ex) {
+            Logger.getLogger(GameMapper.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return null;
+    }
+}

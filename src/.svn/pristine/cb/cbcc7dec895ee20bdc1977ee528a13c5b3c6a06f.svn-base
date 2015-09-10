@@ -1,0 +1,32 @@
+region = region
+region.erg = erg
+region.feshfesh = feshfesh
+region.guelta = guelta
+region.mountain = mountain
+region.rag = rag
+region.saltlake = saltlake
+region.saltmine = saltmine
+region.settlement = settlement
+
+econValue = econ value
+stratValue = strat value
+sector = sector
+player = player
+camels = camels
+
+btn.initBoard = Initialize board
+btn.setRounds = Set rounds
+btn.play = Next turn
+
+lbl.numberOfRounds = Total number of rounds
+lbl.currentRound = Current round
+lbl.numberOfTurns = Number of turns this round
+lbl.currentTurn = Current turn
+
+msg.settlement = Choose the location of each player's settlement
+msg.setRounds = Enter number of rounds
+msg.roundStarted = Round %d has started.
+msg.playerToMove = It's %s's turn to move.
+
+exp.numberFormat = Enter a number!
+exp.incorrectInput = Incorrect input

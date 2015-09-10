@@ -1,0 +1,89 @@
+package domein;
+
+/**
+ * Representeert één vak.
+ *
+ * Frederic Everaert
+ *
+ * @author Gilles Baert
+ * @author Jonas De Bruycker
+ * @author Sander De Quick
+ */
+public class Vak {
+
+    private Gebiedskaart gebied;
+    private Sector sector;
+    private String markeringsteken;
+    private int aantalKamelen = 0;
+    
+    /**
+     * @param speler Spelerobject
+     * @param gk Gebiedskaartobject
+     */
+    public void plaatsGebiedskaart(Speler speler, Gebiedskaart gk) {
+        if (speler.getSector().getSectorNr() != this.getSector().getSectorNr()) {
+            throw new IllegalArgumentException("De nederzetting moet in jouw sector geplaatst worden.");
+        } else {
+            this.setGebied(gk);
+            this.setAantalKamelen(10);
+            this.setMarkeringsteken(speler.getKleur());
+        }
+    }
+
+    /**
+     * @return Gebiedskaart op een vak, kan null zijn
+     */
+    public Gebiedskaart getGebied() {
+        return gebied;
+    }
+
+    /**
+     * @param gebied Gebiedskaart
+     */
+    public void setGebied(Gebiedskaart gebied) {
+        this.gebied = gebied;
+    }
+
+    /**
+     * @return aantal kamelen aanwezig op een vak
+     */
+    public int getAantalKamelen() {
+        return aantalKamelen;
+    }
+
+    /**
+     * @param aantalKamelen aantal kamelen
+     */
+    public void setAantalKamelen(int aantalKamelen) {
+        this.aantalKamelen = aantalKamelen;
+    }
+
+    /**
+     * @return markeringsteken van vak
+     */
+    public String getMarkeringsteken() {
+        return markeringsteken;
+    }
+
+    /**
+     * @param markeringsteken markeringsteken
+     */
+    public void setMarkeringsteken(String markeringsteken) {
+        this.markeringsteken = markeringsteken;
+    }
+
+    /**
+     * @return sector van een bepaald vak
+     */
+    public Sector getSector() {
+        return sector;
+    }
+
+    /**
+     * @param sector sector
+     */
+    public void setSector(Sector sector) {
+        this.sector = sector;
+    }
+
+}

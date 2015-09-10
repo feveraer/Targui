@@ -1,0 +1,215 @@
+package gui;
+
+import domain.DomainController;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.sql.SQLException;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JMenuBar;
+import javax.swing.JOptionPane;
+
+/**
+ *
+ * @author Frederic
+ */
+public class StartJFrame extends JFrame {
+
+    private GameJPanel pnlGame;
+    private PlayersJPanel pnlPlayers;
+    private JButton btnNewGame;
+    private JButton btnLoadGame;
+    private JButton btnSaveGame;
+    private DomainController dc;
+    private Menu menu;
+
+    public StartJFrame(DomainController dc) {
+        this.dc = dc;
+        initComponents();
+    }
+
+    private void initComponents() {
+        pnlGame = new GameJPanel(this, dc);
+        pnlPlayers = new PlayersJPanel(dc);
+        btnNewGame = new JButton("New game");
+        btnNewGame.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                btnStartActionPerformed();
+            }
+        });
+        btnLoadGame = new JButton("Load game");
+        btnLoadGame.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                btnLoadActionPerformed();
+            }
+        });
+        btnSaveGame = new JButton("Save game");
+        btnSaveGame.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                btnSaveActionPerformed();
+            }
+        });
+
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
+        getContentPane().setLayout(layout);
+        layout.setHorizontalGroup(
+                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(layout.createSequentialGroup()
+                        .addGap(20, 20, 20)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                .addComponent(pnlGame, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                                        .addComponent(pnlPlayers, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addGap(50, 50, 50)
+                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                                .addComponent(btnNewGame)
+                                                .addComponent(btnLoadGame)
+                                                .addComponent(btnSaveGame))))
+                        .addContainerGap(26, Short.MAX_VALUE))
+        );
+        layout.setVerticalGroup(
+                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(layout.createSequentialGroup()
+                        .addGap(21, 21, 21)
+                        .addComponent(pnlGame, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addComponent(pnlPlayers, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGroup(layout.createSequentialGroup()
+                                        .addComponent(btnNewGame)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(btnLoadGame)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(btnSaveGame)))
+                        .addContainerGap(33, Short.MAX_VALUE))
+        );
+
+        menu = new Menu(dc, this);
+        setJMenuBar(menu);
+        btnSaveSetEnabled(false);
+        setTitle("Targui demo");
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        pack();
+        setVisible(true);
+    }
+
+    public void activateBtnInitBoard() {
+        pnlGame.activateBtnInitBoard();
+    }
+
+    public void activateBtnEditPlayer() {
+        pnlPlayers.activateBtnEditPlayer();
+    }
+
+    public void btnSaveSetEnabled(boolean flag) {
+        btnSaveGame.setEnabled(flag);
+        menu.saveGameSetEnabled(flag);
+    }
+
+    public void btnLoadSetEnabled(boolean flag) {
+        btnLoadGame.setEnabled(flag);
+        menu.loadGameSetEnabled(flag);
+    }
+
+    public void btnNewGameSetEnabled(boolean flag) {
+        btnNewGame.setEnabled(flag);
+        menu.newGameSetEnabled(flag);
+    }
+
+    private void btnStartActionPerformed() {
+        btnPlayEnabled(false);
+        btnSetRoundsEnabled(false);
+        dc.clearPlayerRepository();
+        dc.setBoardFilled(false);
+        dc.clearGame();
+        setLblCurrentTurn("");
+        setLblNumberOfTurns("");
+        setBtnPlayText("Next round");
+        resetBoard();
+        resetSettlementsPlaced();
+        btnNewGameSetEnabled(false);
+        btnLoadSetEnabled(false);
+        btnSaveSetEnabled(false);
+        new CreatePlayersJFrame(this, dc);
+    }
+
+    private void btnLoadActionPerformed() {
+        registerGameAsListener();
+        registerBoardAsListener();
+        try {
+            new LoadGameJFrame(dc, this, dc.getSavedGameNames());
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(null, "Can't connect to the database.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void btnSaveActionPerformed() {
+        boolean exitState = false;
+        while (!exitState) {
+            String saveName = JOptionPane.showInputDialog("Enter a unique save name");
+            if (saveName == null) {
+                exitState = true;
+            } else if (saveName.isEmpty()) {
+                exitState = false;
+                JOptionPane.showMessageDialog(null, "Name cannot be empty", "Incorrect input", JOptionPane.ERROR_MESSAGE);
+            } else {
+                try {
+                    dc.saveGame(saveName);
+                    exitState = true;
+                } catch (SQLException exp) {
+                    exitState = true;
+                    JOptionPane.showMessageDialog(null, "Can't connect to the database.", "Error", JOptionPane.ERROR_MESSAGE);
+                } catch (IllegalArgumentException exp) {
+                    JOptionPane.showMessageDialog(null, exp.getMessage(), "Incorrect input", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        }
+    }
+
+    public void setSquareMouseListeners() {
+        pnlGame.setSquareMouseListeners();
+    }
+
+    public void setFinalizedRounds(int currentRoundNumber) {
+        pnlGame.setFinalizedRounds(currentRoundNumber);
+    }
+
+    public void btnPlayEnabled(boolean flag) {
+        pnlGame.btnPlayEnabled(flag);
+    }
+    
+    public void btnSetRoundsEnabled(boolean flag) {
+        pnlGame.btnSetRoundsEnabled(flag);
+    }
+
+    public void setLblCurrentTurn(String currTurn) {
+        pnlGame.setLblCurrentTurn(currTurn);
+    }
+
+    public void setLblNumberOfTurns(String nrOfTurns) {
+        pnlGame.setLblNumberOfTurns(nrOfTurns);
+    }
+
+    public void setBtnPlayText(String txt) {
+        pnlGame.setBtnPlayText(txt);
+    }
+
+    public void resetBoard() {
+        pnlGame.resetBoard();
+    }
+    
+    public void resetSettlementsPlaced() {
+        pnlGame.resetSettlementsPlaced();
+    }
+    
+    public void registerGameAsListener() {
+        pnlGame.registerGameAsListener();
+    }
+    
+    public void registerBoardAsListener() {
+        pnlGame.registerBoardAsListener();
+    }
+}

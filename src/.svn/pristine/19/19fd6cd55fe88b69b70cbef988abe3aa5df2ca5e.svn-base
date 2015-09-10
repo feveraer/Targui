@@ -1,0 +1,29 @@
+package domein;
+
+/**
+ * Representeert een sector.
+ *
+ * @author Frederic Everaert
+ * @author Gilles Baert
+ * @author Jonas De Bruycker
+ * @author Sander De Quick
+ */
+public final class Sector {
+
+    private final int sectorNr;
+
+    public Sector(int sectorNr) throws IllegalArgumentException {
+        if (sectorNr < 0 || sectorNr > Spelbord.AANTAL_SECTOREN) {
+            throw new IllegalArgumentException("Gelieve een geldig sectornummer op te geven.");
+        } else {
+            this.sectorNr = sectorNr;
+        }
+    }
+
+    /**
+     * @return sectorNr
+     */
+    public int getSectorNr() {
+        return sectorNr;
+    }
+}

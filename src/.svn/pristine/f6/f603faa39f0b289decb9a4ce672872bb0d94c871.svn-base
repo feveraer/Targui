@@ -1,0 +1,74 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package persistence;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+/**
+ *
+ * @author Sander
+ */
+public class PlayerMapper {
+
+    public void savePlayers(String[][] playerConf) {
+        String values = "";
+        for (String[] array : playerConf) {
+            for (String value : array) {
+                values += "\"" + value;
+                values += "\",";
+            }
+
+            try {
+                String host = "jdbc:mysql://localhost:3306/targui";
+                String uName = "root";
+                String uPass = "root";
+                Connection con = DriverManager.getConnection(host, uName, uPass);
+                Statement stmt = con.createStatement();
+                String SQL = "INSERT INTO player VALUES (" + values + ")";
+                ResultSet rs = stmt.executeQuery(SQL);
+            } catch (SQLException ex) {
+                Logger.getLogger(GameMapper.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }
+
+    public String[][] getPlayers(int gameId) {
+        try {
+            String host = "jdbc:mysql://localhost:3306/targui";
+            String uName = "root";
+            String uPass = "root";
+            Connection con = DriverManager.getConnection(host, uName, uPass);
+
+            Statement stmt = con.createStatement();
+            String SQL = "SELECT * FROM player WHERE gameId " + gameId;
+            ResultSet rs = stmt.executeQuery(SQL);
+
+            String[][] playerConf = new String[4][6];
+            int i=0;
+            while(rs.next()){
+                playerConf[i][0] =rs.getString("gameId");
+                playerConf[i][1] =rs.getString("playerId");
+                playerConf[i][2] =rs.getString("playerName");
+                playerConf[i][3] =rs.getString("playerColor");
+                playerConf[i][4] =rs.getString("playerSector");
+                playerConf[i][5] =rs.getString("playerMoney");
+                i++;
+            }
+            return playerConf;
+
+        } catch (SQLException err) {
+            System.out.println(err.getMessage());
+        }
+        return null;
+    }
+
+}

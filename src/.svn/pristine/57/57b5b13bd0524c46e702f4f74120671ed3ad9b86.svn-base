@@ -1,0 +1,175 @@
+package domain;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import utils.Collections;
+
+/**
+ * Represents one complete game.
+ *
+ * @author Frederic Everaert
+ * @author Gilles Baert
+ * @author Jonas De Bruycker
+ * @author Sander De Quick
+ */
+class Game extends Model {
+
+    public static final int MAX_PLAYERS = 4;
+    public static final int MAX_ROUNDS = 16;
+    private final Player[] players;
+    private final Board board = new Board(this);
+    private final Action[] fortune;
+    private Round round;
+    private int numberOfRounds;
+    private int currentRound = 0;
+    private int[] evaluationOfRound;
+    private int[][][] regionValuesOfRound;
+
+    public Game(Player[] players, int numberOfRounds) {
+        if (players.length != MAX_PLAYERS) {
+            throw new IllegalArgumentException("The game needs exactly " + MAX_PLAYERS + " players to start");
+        }
+        if (players.length != MAX_PLAYERS) {
+            throw new IllegalArgumentException("The game needs exactly " + MAX_PLAYERS + " unique colors to assign to players to start");
+        }
+        if (numberOfRounds < 0 || numberOfRounds > MAX_ROUNDS) {
+            throw new IllegalArgumentException("Requires an integer between 0 and " + MAX_ROUNDS);
+        }
+        this.numberOfRounds = numberOfRounds;
+        this.players = players;
+        Action[] fortuneAll = new Fortune(this).getActions();
+        fortune = Arrays.copyOfRange(fortuneAll, 0, numberOfRounds - 1);
+        Collections.shuffle(fortune, 1);
+        newRound();
+    }
+
+    private void newRound() throws UnsupportedOperationException {
+        if (currentRound < numberOfRounds) {
+            round = new Round(players, fortune[currentRound]);
+            initRegionValuesOfRound();
+            currentRound++;
+        } else {
+            throw new UnsupportedOperationException("Maximum number of rounds reached");
+        }
+    }
+    
+    private void initRegionValuesOfRound() {
+        regionValuesOfRound = new int[Board.DIM][Board.DIM][2];
+        Square[][] squares = board.getSquares();
+        for (int i = 0; i < squares.length; i++) {
+            for (int j = 0; j < squares[i].length; j++) {
+                regionValuesOfRound[i][j][0] = squares[i][j].getRegion().getEconValue();
+                regionValuesOfRound[i][j][1] = squares[i][j].getRegion().getStratValue();
+            }
+        }
+    }
+    
+    public void setEconValueOfRound(int x, int y, int econValue) {
+        regionValuesOfRound[x][y][0] = econValue;
+    }
+    
+    public void setStratValueOfRound(int x, int y, int stratValue) {
+        regionValuesOfRound[x][y][1] = stratValue;
+    }
+
+    private String getVictoryCondition() {
+        List<Player> stillStanding = stillStanding();
+        if (stillStanding.size() == 1) {
+            return stillStanding.get(0).getName();
+        } else if (currentRound == numberOfRounds - 1) {
+            Player victor = players[0];
+            for (int i = 1; i < players.length; i++) {
+                if (players[i].getSilver() > victor.getSilver()) {
+                    victor = players[i];
+                }
+            }
+            return victor.getName();
+        } else {
+            return "";
+        }
+    }
+
+    private List<Player> stillStanding() {
+        List<Player> stillStanding = new ArrayList<>();
+        Square[][] squares = board.getSquares();
+        for (int pIndex = 0; pIndex < MAX_PLAYERS; pIndex++) {
+            for (int i = 0; i < squares.length; i++) {
+                for (int j = 0; j < squares[i].length; j++) {
+                    if (squares[i][j].getPlayer().equals(players[pIndex])) {
+                        stillStanding.add(players[pIndex]);
+                        j = squares[i].length;
+                        i = squares[i].length;
+                    }
+                }
+            }
+        }
+
+        return stillStanding;
+    }
+
+    public Round getRound() {
+        return round;
+    }
+
+    public int getNumberOfTurns() {
+        return round.getNumberOfTurns();
+    }
+
+    public String getNextTurn() {
+        String vc = getVictoryCondition();
+        if (!vc.isEmpty()) {
+            return vc;
+        }
+        try {
+            return round.getNextTurn().getResult();
+        } catch (ArrayIndexOutOfBoundsException e) {
+            evaluateRound();
+            for (int i = 0; i < MAX_PLAYERS; i++) {
+                players[i].setSilver(players[i].getSilver() + evaluationOfRound[i]);
+            }
+            newRound();
+            return getNextTurn();
+        }
+    }
+
+    private void evaluateRound() {
+        evaluationOfRound = new int[MAX_PLAYERS];
+        boolean[] hasSettlement = new boolean[MAX_PLAYERS];
+        Square[][] squares = board.getSquares();
+        for (int pIndex = 0; pIndex < evaluationOfRound.length; pIndex++) {
+            hasSettlement[pIndex] = false;
+            for (int i = 0; i < Board.DIM; i++) {
+                for (int j = 0; j < Board.DIM; j++) {
+                    if (squares[i][j].getRegion().equals(Region.SETTLEMENT)
+                            && squares[i][j].getPlayer().equals(players[pIndex])) {
+                        hasSettlement[pIndex] = true;
+                    }
+                    if (squares[i][j].getPlayer().equals(players[pIndex])) {
+                        evaluationOfRound[pIndex] = regionValuesOfRound[i][j][0];
+                    }
+                }
+            }
+            if (!hasSettlement[pIndex]) {
+                evaluationOfRound[pIndex] = 0;
+            }
+        }
+    }
+
+    public void placeSettlement(Player player, int x, int y) {
+        board.placeSettlement(player, x, y);
+    }
+
+    public Board getBoard() {
+        return board;
+    }
+
+    public Player[] getPlayers() {
+        return players;
+    }
+
+    public int[][] getSectors() {
+        return board.getSectors();
+    }
+
+}

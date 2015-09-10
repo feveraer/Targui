@@ -1,0 +1,244 @@
+package gui;
+
+import domain.DomainController;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.sql.SQLException;
+import java.util.Locale;
+import java.util.ResourceBundle;
+import javax.swing.ButtonGroup;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JRadioButtonMenuItem;
+import javax.swing.KeyStroke;
+
+/**
+ *
+ * @author Frederic
+ */
+public class Menu extends JMenuBar {
+
+    private DomainController dc;
+    private StartJFrame frmStart;
+    private JMenu file;
+    private JMenuItem newGame;
+    private JMenuItem loadGame;
+    private JMenuItem saveGame;
+    private JMenuItem exit;
+    private JMenu edit;
+    private JMenu languages;
+    private JRadioButtonMenuItem en;
+    private JRadioButtonMenuItem nl;
+    private JRadioButtonMenuItem fr;
+    private ResourceBundle bundle;
+    private Object[] confirmOptions;
+
+    public Menu(DomainController dc, StartJFrame frmStart) {
+        this.dc = dc;
+        this.frmStart = frmStart;
+        bundle = ResourceBundle.getBundle("properties/game", Locale.ENGLISH);
+        confirmOptions = new Object[]{bundle.getString("msg.yes"), bundle.getString("msg.no")};
+        initComponents();
+    }
+
+    public void setLanguage(String lang) {
+        Locale locale = new Locale(lang);
+        bundle = ResourceBundle.getBundle("properties/game", locale);
+        switch (lang) {
+            case "en":
+                en.setSelected(true);
+                break;
+            case "nl":
+                nl.setSelected(true);
+                break;
+            case "fr":
+                fr.setSelected(true);
+                break;
+        }
+        update();
+    }
+
+    private void update() {
+        file.setText(bundle.getString("menu.file"));
+        newGame.setText(bundle.getString("menu.new"));
+        loadGame.setText(bundle.getString("menu.load"));
+        saveGame.setText(bundle.getString("menu.save"));
+        exit.setText(bundle.getString("menu.exit"));
+        edit.setText(bundle.getString("menu.edit"));
+        languages.setText(bundle.getString("menu.languages"));
+        en.setText(bundle.getString("menu.en"));
+        nl.setText(bundle.getString("menu.nl"));
+        fr.setText(bundle.getString("menu.fr"));
+        confirmOptions = new Object[]{bundle.getString("msg.yes"), bundle.getString("msg.no")};
+    }
+
+    private void initComponents() {
+        file = new JMenu(bundle.getString("menu.file"));
+        file.setMnemonic(KeyEvent.VK_F);
+        add(file);
+        newGame = new JMenuItem(bundle.getString("menu.new"));
+        newGame.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, ActionEvent.CTRL_MASK));
+        file.add(newGame);
+        loadGame = new JMenuItem(bundle.getString("menu.load"));
+        loadGame.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_L, ActionEvent.CTRL_MASK));
+        file.add(loadGame);
+        saveGame = new JMenuItem(bundle.getString("menu.save"));
+        saveGame.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK));
+        file.add(saveGame);
+        file.addSeparator();
+        exit = new JMenuItem(bundle.getString("menu.exit"));
+        exit.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F4, ActionEvent.ALT_MASK));
+        file.add(exit);
+
+        edit = new JMenu(bundle.getString("menu.edit"));
+        edit.setMnemonic(KeyEvent.VK_E);
+        add(edit);
+        languages = new JMenu(bundle.getString("menu.languages"));
+        edit.add(languages);
+        en = new JRadioButtonMenuItem(bundle.getString("menu.en"));
+        languages.add(en);
+        nl = new JRadioButtonMenuItem(bundle.getString("menu.nl"));
+        languages.add(nl);
+        fr = new JRadioButtonMenuItem(bundle.getString("menu.fr"));
+        languages.add(fr);
+        ButtonGroup group = new ButtonGroup();
+        group.add(en);
+        group.add(nl);
+        group.add(fr);
+
+        newGame.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                newGameActionPerformed();
+            }
+        });
+        loadGame.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                loadGameActionPerformed();
+            }
+        });
+        saveGame.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                saveGameActionPerformed();
+            }
+        });
+        exit.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                exitActionPerformed();
+            }
+        });
+        en.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                langActionPerformed("en");
+            }
+        });
+        nl.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                langActionPerformed("nl");
+            }
+        });
+        fr.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                langActionPerformed("fr");
+            }
+        });
+    }
+
+    public void newGameSetEnabled(boolean flag) {
+        newGame.setEnabled(flag);
+    }
+
+    public void loadGameSetEnabled(boolean flag) {
+        loadGame.setEnabled(flag);
+    }
+
+    public void saveGameSetEnabled(boolean flag) {
+        saveGame.setEnabled(flag);
+    }
+
+    private void newGameActionPerformed() {
+        boolean boardFilled = dc.isBoardFilled();
+        int confirm = JOptionPane.NO_OPTION;
+        if (boardFilled) {
+            JOptionPane.showOptionDialog(frmStart, bundle.getString("msg.confirmNewGame"),
+                    bundle.getString("msg.confirm"), 0, JOptionPane.QUESTION_MESSAGE,
+                    null, confirmOptions, confirmOptions[0]);
+        }
+        if (!boardFilled || confirm == JOptionPane.YES_OPTION) {
+            frmStart.btnPlayEnabled(false);
+            frmStart.btnSetRoundsEnabled(false);
+            dc.clearPlayerRepository();
+            dc.setBoardFilled(false);
+            dc.clearGame();
+            frmStart.setLblCurrentTurn("");
+            frmStart.setLblNumberOfTurns("");
+            frmStart.setBtnPlayText(bundle.getString("btn.nextRound"));
+            frmStart.resetBoard();
+            frmStart.resetSettlementsPlaced();
+            frmStart.btnNewGameSetEnabled(false);
+            frmStart.btnLoadSetEnabled(false);
+            frmStart.btnSaveSetEnabled(false);
+            new CreatePlayersJFrame(frmStart, dc, bundle);
+        }
+    }
+
+    private void loadGameActionPerformed() {
+        frmStart.registerGameAsListener();
+        frmStart.registerBoardAsListener();
+        try {
+            new LoadGameJFrame(dc, frmStart, dc.getSavedGameNames(), bundle);
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(null, bundle.getString("db.failed"), bundle.getString("main.error"), JOptionPane.ERROR_MESSAGE);
+        } catch (UnsupportedOperationException exp) {
+            JOptionPane.showMessageDialog(null, bundle.getString(exp.getMessage()), bundle.getString("exp.incorrectInput"), JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void saveGameActionPerformed() {
+        boolean exitState = false;
+        while (!exitState) {
+            String saveName = JOptionPane.showInputDialog(frmStart, bundle.getString("db.unique"));
+            if (saveName == null) {
+                exitState = true;
+            } else if (saveName.isEmpty()) {
+                exitState = false;
+                JOptionPane.showMessageDialog(null, bundle.getString("exp.nameNotEmpty"), bundle.getString("exp.incorrectInput"), JOptionPane.ERROR_MESSAGE);
+            } else {
+                try {
+                    dc.saveGame(saveName);
+                    exitState = true;
+                } catch (SQLException exp) {
+                    exitState = true;
+                    JOptionPane.showMessageDialog(null, bundle.getString("db.failed"), bundle.getString("main.error"), JOptionPane.ERROR_MESSAGE);
+                } catch (IllegalArgumentException exp) {
+                    String[] message = exp.getMessage().split(" ");
+                    JOptionPane.showMessageDialog(null, String.format(bundle.getString(message[0]), message[1]), bundle.getString("exp.incorrectInput"), JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        }
+    }
+
+    private void exitActionPerformed() {
+        int confirmed = JOptionPane.showOptionDialog(frmStart,
+                bundle.getString("msg.exit"), bundle.getString("menu.exit"), 0,
+                JOptionPane.QUESTION_MESSAGE, null, confirmOptions, confirmOptions[0]);
+
+        if (confirmed == JOptionPane.YES_OPTION) {
+            System.exit(0);
+        }
+    }
+
+    private void langActionPerformed(String lang) {
+        setLanguage(lang);
+        frmStart.setLanguage(lang);
+    }
+}

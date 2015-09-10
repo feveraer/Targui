@@ -1,0 +1,38 @@
+
+package domain;
+
+/**
+ *
+ * @author Frederic
+ */
+class Fortune implements Turn {
+    
+    private int identifier;
+    private Action action;
+
+    public Fortune(int identifier, Action action) {
+        setIdentifier(identifier);
+        setAction(action);
+    }
+
+    public int getIdentifier() {
+        return identifier;
+    }
+
+    public void setIdentifier(int identifier) {
+        this.identifier = identifier;
+    }
+
+    public void setAction(Action action) {
+        this.action = action;
+    }
+    
+    public String doAction() {
+        return action.doAction();
+    }
+    
+    @Override
+    public Turn getTurn() {
+        return this;
+    }
+}

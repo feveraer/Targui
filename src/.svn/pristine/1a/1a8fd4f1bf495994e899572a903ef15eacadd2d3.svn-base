@@ -1,0 +1,59 @@
+package gui;
+
+import domain.DomainController;
+import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+
+/**
+ *
+ * @author Frederic
+ */
+public class EditPlayerJFrame extends JFrame {
+    
+    private JPanel pnlName;
+    private JPanel pnlColor;
+    private JPanel pnlSector;
+    private JPanel pnlSilver;   
+    private JButton btnCancel;
+    private DomainController dc;
+    private PlayersJFrame playersFrame;
+    
+    public EditPlayerJFrame(PlayersJFrame playersFrame, DomainController dc) {
+        this.dc = dc;
+        this.playersFrame = playersFrame;
+        initComponents();
+    }
+
+    private void initComponents() {
+        pnlName = new EditPlayerJPanel(playersFrame, dc, "Name", "Old name", "New name");
+        pnlColor = new EditPlayerJPanel(playersFrame, dc, "Color", "Name", "New color");
+        pnlSector = new EditPlayerJPanel(playersFrame, dc, "Sector", "Name", "New sector");
+        pnlSilver = new EditPlayerJPanel(playersFrame, dc, "Silver", "Name", "New silver");
+        btnCancel = new JButton("Cancel");
+        btnCancel.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                btnCancelActionPerformed();
+            }
+        });
+        
+        setLayout(new GridLayout(5, 1));
+        add(pnlName);
+        add(pnlColor);
+        add(pnlSector);
+        add(pnlSilver);
+        add(btnCancel);
+        setTitle("Targui demo - edit player");
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        pack();
+        setVisible(true);
+    }
+    
+    private void btnCancelActionPerformed() {
+        dispose();
+    }
+}

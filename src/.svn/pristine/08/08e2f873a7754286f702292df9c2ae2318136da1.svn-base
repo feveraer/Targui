@@ -1,0 +1,33 @@
+package domein;
+
+import java.util.Random;
+
+/**
+ * Representeert één ronde.
+ *
+ * @author Frederic Everaert
+ * @author Gilles Baert
+ * @author Jonas De Bruycker
+ * @author Sander De Quick
+ */
+public class Ronde {
+
+    private Beurt[] beurten;
+    Random random = new Random(6);
+
+    public Ronde() {
+        int dobbelsteenworp = random.nextInt() + 1;
+        Beurt[] beurten = new Beurt[dobbelsteenworp];
+        for (int i = 0; i < dobbelsteenworp; i++) {
+            beurten[i] = new Beurt();
+        }
+
+    }
+
+    /**
+     * @return beurten
+     */
+    public Beurt[] getBeurten() {
+        return beurten;
+    }
+}

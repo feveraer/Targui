@@ -1,0 +1,57 @@
+package domein;
+
+/**
+ * Representeert één volledig spel.
+ *
+ * @author Frederic Everaert
+ * @author Gilles Baert
+ * @author Jonas De Bruycker
+ * @author Sander De Quick
+ */
+public class Spel {
+
+    private enum KLEUREN {
+
+        ROOD,
+        GEEL,
+        BLAUW,
+        GROEN;
+    }
+
+    private final Spelbord spelbord = new Spelbord();
+    
+    /**
+     * Configuratie van het spelbord.
+     */
+    public void vulSpelbord() {
+        spelbord.vulSpelbord();
+    }
+
+    /**
+     *
+     * @return 2D array representatie van het spel
+     */
+    public Vak[][] geefSpel() {
+        return spelbord.geefSpelbord();
+    }
+
+    /**
+     *
+     * @return 2D array representatie van het spelbord
+     */
+    public Spelbord getSpelbord() {
+        return spelbord;
+    }
+
+    /**
+     * Plaatst een gebiedskaart van het type nederzetting op een specifiek vak.
+     *
+     * @param speler Spelerobject
+     * @param vakX X-coördinaat van het gewenste vak
+     * @param vakY Y-coördinaat van het gewenste vak
+     */
+    public void plaatsNederzetting(Speler speler, int vakX, int vakY) {
+        spelbord.plaatsNederzetting(speler, vakX, vakY);
+    }
+
+}

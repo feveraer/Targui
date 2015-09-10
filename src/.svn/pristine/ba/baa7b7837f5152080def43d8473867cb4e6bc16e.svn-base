@@ -1,0 +1,55 @@
+package domain;
+
+import java.util.Random;
+import utils.Collections;
+
+/**
+ * Representeert één ronde.
+ *
+ * @author Frederic Everaert
+ * @author Gilles Baert
+ * @author Jonas De Bruycker
+ * @author Sander De Quick
+ */
+class Round {
+
+    private Turn[] beurten;
+    private boolean afgewerkt;
+    private int huidigeBeurt;
+
+    public Round(Player[] spelers, Action noodlotskaart) {
+        int groep = 0;
+        Random random = new Random();
+        int dobbelsteenworp = random.nextInt(6) + 1;
+        if (dobbelsteenworp < 6) {
+            beurten = new Turn[dobbelsteenworp * PlayerRepository.MAX_PLAYERS + 1];
+            groep = 1;
+        } else if (dobbelsteenworp == 6) {
+            beurten = new Turn[2 * PlayerRepository.MAX_PLAYERS + 1];
+            groep = 2;
+        }
+        for (int i = 0; i < beurten.length - 1; i++) {
+            beurten[i] = new Turn(spelers[i % PlayerRepository.MAX_PLAYERS], null);
+        }
+        beurten[beurten.length - 1] = new Turn(null, noodlotskaart);
+        Collections.shuffle(beurten, groep);
+    }
+
+    public void speelBeurt() {
+        if (!afgewerkt) {
+            if (huidigeBeurt > beurten.length - 1) {
+                afgewerkt = true;
+            }
+            else {
+                //speel de beurt
+            }
+        }
+    }
+
+    /**
+     * @return beurten
+     */
+    public Turn[] getBeurten() {
+        return beurten;
+    }
+}

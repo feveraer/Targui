@@ -1,0 +1,87 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package persistence;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+/**
+ *
+ * @author Sander
+ */
+class GameMapper {
+
+    public GameMapper() {
+    }
+
+    public void saveGame(String[] gameConf, String gameNaam) throws SQLException {
+        String values = "";
+        for (int i = 0; i < gameConf.length; i++) {
+            values += "'" + gameConf[i] + "'";
+            if (i < gameConf.length - 1) {
+                values += ",";
+            }
+        }
+        String host = "jdbc:mysql://localhost:3306/targui";
+        String uName = "root";
+        String uPass = "root";
+        Connection con = DriverManager.getConnection(host, uName, uPass);
+        Statement stmt = con.createStatement();
+        String SQL = "INSERT INTO game VALUES (" + values + ")";
+        stmt.executeUpdate(SQL);
+    }
+
+    public int getNextGameId() throws SQLException {
+        int gameId = 0;
+        String host = "jdbc:mysql://localhost:3306/targui";
+        String uName = "root";
+        String uPass = "root";
+        Connection con = DriverManager.getConnection(host, uName, uPass);
+        Statement stmt = con.createStatement();
+        String SQL = "SELECT MAX(gameId) + 1 FROM game";
+        ResultSet rs = stmt.executeQuery(SQL);
+        if (rs.next()) {
+            gameId = rs.getInt(1);
+        }
+        return gameId;
+    }
+
+    public boolean containsGameName(String gameName) throws SQLException {
+        boolean contains = false;
+        String host = "jdbc:mysql://localhost:3306/targui";
+        String uName = "root";
+        String uPass = "root";
+        Connection con = DriverManager.getConnection(host, uName, uPass);
+        Statement stmt = con.createStatement();
+        String SQL = "SELECT * FROM game WHERE gameName = '" + gameName + "'";
+        ResultSet rs = stmt.executeQuery(SQL);
+        if (rs.next()) {
+            contains = true;
+        }
+        return contains;
+    }
+
+    public String[] getGame(String gameName) throws SQLException {
+        String host = "jdbc:mysql://localhost:3306/targui";
+        String uName = "root";
+        String uPass = "root";
+        Connection con = DriverManager.getConnection(host, uName, uPass);
+        Statement stmt = con.createStatement();
+        String SQL = "SELECT * FROM game WHERE gameName = '" + gameName + "'";
+        ResultSet rs = stmt.executeQuery(SQL);
+
+        String[] gameConf = new String[3];
+        while (rs.next()) {
+            gameConf[0] = rs.getString("gameId");
+            gameConf[1] = rs.getString("gameName");
+            gameConf[2] = rs.getString("currentRound");
+        }
+        return gameConf;
+    }
+}

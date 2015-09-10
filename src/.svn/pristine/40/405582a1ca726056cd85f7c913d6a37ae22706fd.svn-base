@@ -1,0 +1,77 @@
+package domein;
+
+public class Vak {
+
+    private Gebiedskaart gebied = null;
+    private int aantalKamelen = 0;
+    private String markeringsteken = null;
+    private Sector sector;
+
+    /**
+     * @return the gebied
+     */
+    public Gebiedskaart getGebied() {
+        return gebied;
+    }
+
+    /**
+     * @param gebied the gebied to set
+     */
+    public void setGebied(Gebiedskaart gebied) {
+        this.gebied = gebied;
+    }
+
+    /**
+     * @return the aantalKamelen
+     */
+    public int getAantalKamelen() {
+        return aantalKamelen;
+    }
+
+    /**
+     * @param aantalKamelen the aantalKamelen to set
+     */
+    public void setAantalKamelen(int aantalKamelen) {
+        this.aantalKamelen = aantalKamelen;
+    }
+
+    /**
+     * @return the markeringsteken
+     */
+    public String getMarkeringsteken() {
+        return markeringsteken;
+    }
+
+    /**
+     * @param markeringsteken the markeringsteken to set
+     */
+    public void setMarkeringsteken(String markeringsteken) {
+        this.markeringsteken = markeringsteken;
+    }
+
+    /**
+     *
+     * @return sector
+     */
+    public Sector getSector() {
+        return sector;
+    }
+
+    /**
+     *
+     * @param sector
+     */
+    public void setSector(Sector sector) {
+        this.sector = sector;
+    }
+    
+    public void plaatsNederzetting(Speler speler, Vak vak, Gebiedskaart[] nederzettingen)
+    {
+        int aantalNederzettingen=neder
+        if(speler.getSector() != vak.getSector())
+            throw new IllegalArgumentException("De nederzetting moet in jouw sector geplaatst worden.");
+        else
+            vak.setGebied(nederzettingen[0]);
+    }
+
+}

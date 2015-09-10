@@ -1,0 +1,573 @@
+package gui;
+
+import domain.DomainController;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.GridLayout;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.io.IOException;
+import java.lang.reflect.Field;
+import java.util.List;
+import java.util.Locale;
+import java.util.ResourceBundle;
+import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.UIManager;
+import javax.swing.border.LineBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+
+/**
+ *
+ * @author Frederic
+ */
+public class BoardJPanel extends JPanel implements ChangeListener {
+
+    private final DomainController dc;
+    private GameJPanel pnlGame;
+    private TarguiButton[][] btnSquares;
+    private final String[] imgStrings;
+    private final ImageIcon[] imgRegions;
+    private final ImageIcon[] imgRegionsDisabled;
+    private ImageIcon[] imgChangedRegions;
+    private int settlementsPlaced;
+    private boolean settlementPlacementEnabled;
+    private boolean movingEnabled;
+    private boolean adjacentEnabled;
+    private boolean buyingCamelsEnabled;
+    private String playerToMove;
+    private int xFrom;
+    private int yFrom;
+    private String previousPlayer;
+    private Object[] confirmOptions;
+    private ResourceBundle bundle;
+
+    public BoardJPanel(DomainController dc, GameJPanel pnlGame) {
+        this.imgStrings = dc.getRegions();
+        this.dc = dc;
+        this.pnlGame = pnlGame;
+        bundle = ResourceBundle.getBundle("properties/game", Locale.ENGLISH);
+        confirmOptions = new Object[]{bundle.getString("msg.yes"), bundle.getString("msg.no")};
+        initComponents();
+        imgRegions = new ImageIcon[imgStrings.length];
+        imgRegionsDisabled = new ImageIcon[imgStrings.length];
+        for (int i = 0; i < imgRegions.length; i++) {
+            try {
+                imgRegions[i] = new ImageIcon(ImageIO.read(getClass().getResource("/images/" + imgStrings[i].toLowerCase() + ".jpg")));
+                imgRegionsDisabled[i] = new ImageIcon(ImageIO.read(getClass().getResource("/images/" + imgStrings[i].toLowerCase() + "Disabled.jpg")));
+            } catch (IOException ex) {
+                JOptionPane.showMessageDialog(null, bundle.getString("exp.severe"), bundle.getString("main.error"), JOptionPane.ERROR_MESSAGE);
+            }
+        }
+        imgChangedRegions = new ImageIcon[4];
+        try {
+            imgChangedRegions[0] = new ImageIcon(ImageIO.read(getClass().getResource("/images/erg+3.jpg")));
+            imgChangedRegions[1] = new ImageIcon(ImageIO.read(getClass().getResource("/images/erg+3Disabled.jpg")));
+            imgChangedRegions[2] = new ImageIcon(ImageIO.read(getClass().getResource("/images/mountain+3.jpg")));
+            imgChangedRegions[3] = new ImageIcon(ImageIO.read(getClass().getResource("/images/mountain+3Disabled.jpg")));
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(null, bundle.getString("exp.severe"), bundle.getString("main.error"), JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    public void setLanguage(String lang) {
+        Locale locale = new Locale(lang);
+        bundle = ResourceBundle.getBundle("properties/game", locale);
+        update();
+    }
+
+    private void update() {
+        confirmOptions = new Object[]{bundle.getString("msg.yes"), bundle.getString("msg.no")};
+    }
+
+    private ImageIcon[] getImageIcons(String region) {
+        ImageIcon[] icons = new ImageIcon[2];
+        switch (region.toLowerCase()) {
+            case "saltmine":
+                icons[0] = imgRegions[0];
+                icons[1] = imgRegionsDisabled[0];
+                return icons;
+            case "settlement":
+                icons[0] = imgRegions[1];
+                icons[1] = imgRegionsDisabled[1];
+                return icons;
+            case "guelta":
+                icons[0] = imgRegions[2];
+                icons[1] = imgRegionsDisabled[2];
+                return icons;
+            case "erg":
+                icons[0] = imgRegions[3];
+                icons[1] = imgRegionsDisabled[3];
+                return icons;
+            case "mountain":
+                icons[0] = imgRegions[4];
+                icons[1] = imgRegionsDisabled[4];
+                return icons;
+            case "rag":
+                icons[0] = imgRegions[5];
+                icons[1] = imgRegionsDisabled[5];
+                return icons;
+            case "feshfesh":
+                icons[0] = imgRegions[6];
+                icons[1] = imgRegionsDisabled[6];
+                return icons;
+            case "saltlake":
+                icons[0] = imgRegions[7];
+                icons[1] = imgRegionsDisabled[7];
+                return icons;
+        }
+        return null;
+    }
+
+    private ImageIcon[] getChangedImageIcons(String region) {
+        ImageIcon[] icons = new ImageIcon[2];
+        switch (region.toLowerCase()) {
+            case "erg":
+                icons[0] = imgChangedRegions[0];
+                icons[1] = imgChangedRegions[1];
+                return icons;
+            case "mountain":
+                icons[0] = imgChangedRegions[2];
+                icons[1] = imgChangedRegions[3];
+                return icons;
+        }
+        return null;
+    }
+
+    public void registerAsListener() {
+        dc.addRepoChangeListener(this);
+        dc.addGameChangeListener(this);
+    }
+
+    public void setSquareMouseListeners() {
+        for (int i = 0; i < btnSquares.length; i++) {
+            for (int j = 0; j < btnSquares[i].length; j++) {
+                final int ii = i;
+                final int jj = j;
+                MouseAdapter mouseAdapter = new MouseAdapter() {
+                    @Override
+                    public void mouseEntered(MouseEvent e) {
+                        pnlGame.setBoardInfo(ii, jj);
+                    }
+
+                    @Override
+                    public void mouseExited(MouseEvent e) {
+                        pnlGame.setBoardInfo();
+                    }
+                };
+                btnSquares[i][j].addMouseListener(mouseAdapter);
+            }
+        }
+    }
+
+    private void initComponents() {
+        int[][] sectors = dc.getSectors();
+        btnSquares = new TarguiButton[7][7];
+        setLayout(new GridLayout(7, 7));
+        setBorder(new LineBorder(Color.BLACK));
+
+        Insets buttonMargin = new Insets(0, 0, 0, 0);
+        for (int i = 0; i < btnSquares.length; i++) {
+            for (int j = 0; j < btnSquares[i].length; j++) {
+                TarguiButton b = new TarguiButton();
+                b.setMargin(buttonMargin);
+                b.setPreferredSize(new Dimension(90, 90));
+                b.setBackground(new Color(240, 230, 140));
+                btnSquares[i][j] = b;
+                final int sqX = i;
+                final int sqY = j;
+                btnSquares[i][j].addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        btnSquareActionPerformed(sqX, sqY);
+                    }
+                });
+                if (sectors[i][j] == -1) {
+                    btnSquares[i][j].setText("");
+                } else {
+                    btnSquares[i][j].setText(Integer.toString(sectors[i][j] + 1));
+                }
+                add(btnSquares[i][j]);
+            }
+        }
+        setVisible(true);
+    }
+
+    public void setSquareProperties() {
+        String[][][] board = dc.getBoard();
+        int[][] sectors = dc.getSectors();
+
+        for (int i = 0; i < btnSquares.length; i++) {
+            for (int j = 0; j < btnSquares[i].length; j++) {
+                if (!board[i][j][0].isEmpty() && board[i][j][0].length() > 2) {
+                    if ((board[i][j][0].toLowerCase().equals("mountain") && Integer.parseInt(board[i][j][1]) == 3)
+                            || (board[i][j][0].toLowerCase().equals("erg") && Integer.parseInt(board[i][j][2]) == 3)) {
+                        ImageIcon[] icons = getChangedImageIcons(board[i][j][0]);
+                        btnSquares[i][j].setText("");
+                        btnSquares[i][j].setIcon(icons[0]);
+                        btnSquares[i][j].setDisabledIcon(icons[1]);
+                    } else {
+                        ImageIcon[] icons = getImageIcons(board[i][j][0]);
+                        btnSquares[i][j].setText("");
+                        btnSquares[i][j].setIcon(icons[0]);
+                        btnSquares[i][j].setDisabledIcon(icons[1]);
+                    }
+                    Color color;
+                    try {
+                        Field field = Class.forName("java.awt.Color").getField(board[i][j][5]);
+                        color = (Color) field.get(null);
+                    } catch (ClassNotFoundException | NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
+                        // Not defined, no player on square
+                        color = new Color(240, 230, 140);
+                    }
+                    btnSquares[i][j].setBackground(color);
+                    btnSquares[i][j].setBorder(null);
+                    btnSquares[i][j].setCamels(Integer.parseInt(board[i][j][6]));
+                } else {
+                    if (sectors[i][j] == -1) {
+                        btnSquares[i][j].setText("");
+                    } else {
+                        btnSquares[i][j].setText(Integer.toString(sectors[i][j] + 1));
+                    }
+                    btnSquares[i][j].setIcon(null);
+                    btnSquares[i][j].setDisabledIcon(null);
+                    btnSquares[i][j].setBackground(new Color(240, 230, 140));
+                    btnSquares[i][j].setBorder(UIManager.getBorder("Button.border"));
+                }
+            }
+        }
+    }
+
+    public int getSettlementsPlaced() {
+        return settlementsPlaced;
+    }
+
+    public void resetSettlementsPlaced() {
+        settlementsPlaced = 0;
+    }
+
+    public void setSettlementsEnabled(boolean flag) {
+        settlementPlacementEnabled = flag;
+        if (flag) {
+            showSector(settlementsPlaced);
+        }
+    }
+
+    public void setMovingEnabled(boolean flag) {
+        movingEnabled = flag;
+    }
+
+    public void setBuyingCamelsEnabled(boolean flag) {
+        buyingCamelsEnabled = flag;
+    }
+
+    public void setAdjacentEnabled(boolean flag) {
+        adjacentEnabled = flag;
+    }
+
+    private void showSector(int sector) {
+        String[][] players = dc.getPlayers();
+        int[][] sectors = dc.getSectors();
+        if (sector == 4) {
+            for (int i = 0; i < sectors.length; i++) {
+                for (int j = 0; j < sectors[i].length; j++) {
+                    btnSquares[i][j].setEnabled(true);
+                }
+            }
+        } else {
+            for (int i = 0; i < sectors.length; i++) {
+                for (int j = 0; j < sectors[i].length; j++) {
+                    if (Integer.parseInt(players[settlementsPlaced][2]) != sectors[i][j]) {
+                        btnSquares[i][j].setEnabled(false);
+                    } else {
+                        btnSquares[i][j].setEnabled(true);
+                    }
+                }
+            }
+        }
+    }
+
+    public void showPlayerSquaresWithCamels(String player) {
+        String[][][] board = dc.getBoard();
+        for (int i = 0; i < btnSquares.length; i++) {
+            for (int j = 0; j < btnSquares[i].length; j++) {
+                if (!board[i][j][4].equals(player) || Integer.parseInt(board[i][j][6]) < 1) {
+                    btnSquares[i][j].setEnabled(false);
+                }
+            }
+        }
+        playerToMove = player;
+    }
+
+    public void showPlayerSquares(String player) {
+        String[][][] board = dc.getBoard();
+        for (int i = 0; i < btnSquares.length; i++) {
+            for (int j = 0; j < btnSquares[i].length; j++) {
+                if (!board[i][j][4].equals(player)) {
+                    btnSquares[i][j].setEnabled(false);
+                }
+            }
+        }
+        playerToMove = player;
+    }
+
+    public void showAllSquares(boolean flag) {
+        for (int i = 0; i < btnSquares.length; i++) {
+            for (int j = 0; j < btnSquares[i].length; j++) {
+                btnSquares[i][j].setEnabled(flag);
+            }
+        }
+    }
+
+    private void showAdjacentSquares(int sqX, int sqY) {
+        showAllSquares(false);
+        int[][] adjacentSquares = dc.getAdjacentSquares(sqX, sqY);
+        for (int i = 0; i < adjacentSquares.length; i++) {
+            btnSquares[adjacentSquares[i][0]][adjacentSquares[i][1]].setEnabled(true);
+        }
+        xFrom = sqX;
+        yFrom = sqY;
+    }
+
+    private boolean isSquareTaken(int sqX, int sqY) {
+        String[][][] board = dc.getBoard();
+        if (board[sqX][sqY][4].isEmpty()) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    private String getPlayerOnSquare(int sqX, int sqY) {
+        String[][][] board = dc.getBoard();
+        return board[sqX][sqY][4];
+    }
+
+    private int getCamelsOnSquare(int sqX, int sqY) {
+        String[][][] board = dc.getBoard();
+        return Integer.parseInt(board[sqX][sqY][6]);
+    }
+
+    public void finalizeTurn(String[][] players) {
+        if (dc.getCurrentTurnNumber() == dc.getNumberOfTurns() && !pnlGame.isRoundFinalized(dc.getCurrentRoundNumber())) {
+            int[] roundEvaluation = dc.evaluateRound();
+            pnlGame.finalizeRound(dc.getCurrentRoundNumber());
+            String evaluationString = String.format(bundle.getString("msg.roundEnd"), players[0][0], roundEvaluation[0],
+                    players[1][0], roundEvaluation[1], players[2][0], roundEvaluation[2], players[3][0], roundEvaluation[3]);
+            JOptionPane.showMessageDialog(pnlGame, evaluationString);
+        }
+        //return possible victor
+        List<String> victors = dc.getVictors();
+        int nrOfVictors = victors.size();
+        if (nrOfVictors > 0) {
+            pnlGame.btnPlayEnabled(false);
+            switch (nrOfVictors) {
+                case 1:
+                    JOptionPane.showMessageDialog(pnlGame, String.format(bundle.getString("msg.victor"),
+                            victors.get(0)));
+                    break;
+                case 2:
+                    JOptionPane.showMessageDialog(pnlGame, String.format(bundle.getString("msg.tiegame"),
+                            victors.get(0), victors.get(1)));
+                    break;
+                case 3:
+                    JOptionPane.showMessageDialog(pnlGame, String.format(bundle.getString("msg.tiegame2"),
+                            victors.get(0), victors.get(1), victors.get(2)));
+                    break;
+                case 4:
+                    JOptionPane.showMessageDialog(pnlGame, bundle.getString("msg.tiegame3"));
+                    break;
+            }
+
+        }
+    }
+
+    private void showEndTurnMessage(String player) {
+        JOptionPane.showMessageDialog(pnlGame, String.format(bundle.getString("msg.turnEnd"), player));
+        pnlGame.setBtnPlayText(bundle.getString("btn.nextTurn"));
+    }
+
+    private void btnSquareActionPerformed(int sqX, int sqY) {
+        String[][] players = dc.getPlayers();
+        if (settlementPlacementEnabled && settlementsPlaced < 4) {
+            try {
+                dc.placeSettlement(players[settlementsPlaced][0], sqX, sqY);
+                settlementsPlaced++;
+                showSector(settlementsPlaced);
+                if (settlementsPlaced == 4) {
+                    settlementPlacementEnabled = false;
+                    pnlGame.btnSetRoundsEnabled(true);
+                }
+            } catch (IllegalArgumentException exp) {
+                String[] message = exp.getMessage().split(" ");
+                if (message.length == 1) {
+                    JOptionPane.showMessageDialog(null, bundle.getString(message[0]), bundle.getString("exp.incorrectInput"), JOptionPane.ERROR_MESSAGE);
+                } else if (message.length == 2) {
+                    JOptionPane.showMessageDialog(null, String.format(bundle.getString(message[0]), message[1]), bundle.getString("exp.incorrectInput"), JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        }
+        if (buyingCamelsEnabled) {
+            buyingCamelsEnabled = false;
+            boolean correctNumber = false;
+            while (!correctNumber) {
+                String input = JOptionPane.showInputDialog(pnlGame, String.format(bundle.getString("msg.buyCamels"), playerToMove));
+                if (input == null) {
+                    correctNumber = true;
+                } else {
+                    try {
+                        int numberOfCamelsToBuy = Integer.parseInt(input);
+                        dc.purchaseCamels(sqX, sqY, numberOfCamelsToBuy);
+                        correctNumber = true;
+                    } catch (NumberFormatException exp) {
+                        JOptionPane.showMessageDialog(null, bundle.getString("exp.numberFormat"), bundle.getString("exp.incorrectInput"), JOptionPane.ERROR_MESSAGE);
+                    } catch (IllegalArgumentException exp) {
+                        String[] message = exp.getMessage().split(" ");
+                        if (message.length == 1) {
+                            JOptionPane.showMessageDialog(null, bundle.getString(message[0]), bundle.getString("exp.incorrectInput"), JOptionPane.ERROR_MESSAGE);
+                        } else if (message.length == 2) {
+                            JOptionPane.showMessageDialog(null, String.format(bundle.getString(message[0]), message[1]), bundle.getString("exp.incorrectInput"), JOptionPane.ERROR_MESSAGE);
+                        } else if (message.length == 3) {
+                            JOptionPane.showMessageDialog(null, String.format(bundle.getString(message[0]), message[1], message[2]), bundle.getString("exp.incorrectInput"), JOptionPane.ERROR_MESSAGE);
+                        }
+                    }
+                }
+            }
+            showAllSquares(true);
+            showEndTurnMessage(playerToMove);
+            finalizeTurn(players);
+        }
+        if (adjacentEnabled) {
+            adjacentEnabled = false;
+            String thisPlayer = getPlayerOnSquare(sqX, sqY);
+            boolean isSquareTakenByOtherPlayer = isSquareTaken(sqX, sqY) && !previousPlayer.equals(thisPlayer);
+            int endTurn = JOptionPane.NO_OPTION;
+            if (isSquareTakenByOtherPlayer) {
+                dc.initiateAttack(xFrom, yFrom, sqX, sqY);
+                int continueBattle = JOptionPane.NO_OPTION;
+                do {
+                    int[] battleStatus = dc.attack();
+                    String battleMessage = "";
+                    switch (battleStatus[0]) {
+                        case -1:
+                            battleMessage = String.format(bundle.getString("msg.attackWon1"),
+                                    playerToMove, thisPlayer);
+                            break;
+                        case 0:
+                            battleMessage = String.format(bundle.getString("msg.attackWon2"),
+                                    playerToMove, battleStatus[1], thisPlayer);
+                            break;
+                        case 1:
+                            battleMessage = String.format(bundle.getString("msg.defenderWon"),
+                                    playerToMove, battleStatus[1], battleStatus[2], thisPlayer,
+                                    thisPlayer, battleStatus[3], playerToMove, thisPlayer, getCamelsOnSquare(sqX, sqY));
+                            break;
+                        case 2:
+                            battleMessage = String.format(bundle.getString("msg.attackOngoing"),
+                                    playerToMove, battleStatus[1], battleStatus[2], thisPlayer,
+                                    thisPlayer, battleStatus[3], battleStatus[4], playerToMove,
+                                    playerToMove, getCamelsOnSquare(xFrom, yFrom), thisPlayer, getCamelsOnSquare(sqX, sqY));
+                            break;
+                    }
+                    JOptionPane.showMessageDialog(pnlGame, battleMessage);
+                    if (battleStatus[0] == 0 || battleStatus[0] == -1) {
+                        String victoryMessage = String.format(bundle.getString("msg.moveCamelsAfterBattle"), playerToMove, getCamelsOnSquare(xFrom, yFrom));
+                        boolean correctNumber = false;
+                        while (!correctNumber) {
+                            String input = JOptionPane.showInputDialog(pnlGame, victoryMessage);
+                            if (input == null) {
+                                correctNumber = true;
+                            } else {
+                                try {
+                                    int camelsToMove = Integer.parseInt(input);
+                                    dc.moveCamelsAfterWonBattle(camelsToMove);
+                                    correctNumber = true;
+                                } catch (NumberFormatException exp) {
+                                    JOptionPane.showMessageDialog(null, bundle.getString("exp.numberFormat"), bundle.getString("exp.incorrectInput"), JOptionPane.ERROR_MESSAGE);
+                                } catch (IllegalArgumentException exp) {
+                                    String[] message = exp.getMessage().split(" ");
+                                    if (message.length == 1) {
+                                        JOptionPane.showMessageDialog(null, bundle.getString(message[0]), bundle.getString("exp.incorrectInput"), JOptionPane.ERROR_MESSAGE);
+                                    } else if (message.length == 2) {
+                                        JOptionPane.showMessageDialog(null, String.format(bundle.getString(message[0]), message[1]), bundle.getString("exp.incorrectInput"), JOptionPane.ERROR_MESSAGE);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    if (battleStatus[0] == 2) {
+                        continueBattle = JOptionPane.showOptionDialog(pnlGame, String.format(bundle.getString("msg.battleContinue"), playerToMove), bundle.getString("btn.continue"), 0, JOptionPane.QUESTION_MESSAGE, null, confirmOptions, confirmOptions[0]);
+                    } else {
+                        continueBattle = JOptionPane.NO_OPTION;
+                    }
+                } while (continueBattle == JOptionPane.YES_OPTION);
+            } else {
+                boolean correctNumber = false;
+                while (!correctNumber) {
+                    String input = JOptionPane.showInputDialog(pnlGame, String.format(bundle.getString("msg.moveCamels"), playerToMove));
+                    if (input == null) {
+                        endTurn = JOptionPane.showOptionDialog(pnlGame, bundle.getString("msg.comfirmEndTurn"), bundle.getString("btn.cancel"), 0, JOptionPane.QUESTION_MESSAGE, null, confirmOptions, confirmOptions[0]);
+                        if (endTurn == JOptionPane.YES_OPTION) {
+                            correctNumber = true;
+                        }
+                    } else {
+                        try {
+                            int numberOfCamelsToMove = Integer.parseInt(input);
+                            dc.move(xFrom, yFrom, sqX, sqY, numberOfCamelsToMove);
+                            correctNumber = true;
+                        } catch (NumberFormatException exp) {
+                            JOptionPane.showMessageDialog(null, bundle.getString("exp.numberFormat"), bundle.getString("exp.incorrectInput"), JOptionPane.ERROR_MESSAGE);
+                        } catch (IllegalArgumentException exp) {
+                            String[] message = exp.getMessage().split(" ");
+                            if (message.length == 1) {
+                                JOptionPane.showMessageDialog(null, bundle.getString(exp.getMessage()), bundle.getString("exp.incorrectInput"), JOptionPane.ERROR_MESSAGE);
+                            } else if (message.length == 2) {
+                                JOptionPane.showMessageDialog(null, String.format(bundle.getString(message[0]), message[1]), bundle.getString("exp.incorrectInput"), JOptionPane.ERROR_MESSAGE);
+                            }
+                        }
+                    }
+                }
+            }
+            showAllSquares(true);
+            if (dc.getSilver(playerToMove) > 0 && !isSquareTakenByOtherPlayer && endTurn == JOptionPane.NO_OPTION) {
+                int moreCamels = JOptionPane.showOptionDialog(pnlGame, String.format(bundle.getString("msg.buyAdditionalCamels"), playerToMove), bundle.getString("msg.buyCamelsTitle"), 0, JOptionPane.QUESTION_MESSAGE, null, confirmOptions, confirmOptions[0]);
+                if (moreCamels == JOptionPane.YES_OPTION) {
+                    JOptionPane.showMessageDialog(pnlGame, bundle.getString("msg.camelsSq"));
+                    showPlayerSquares(playerToMove);
+                    buyingCamelsEnabled = true;
+                }
+            }
+            if (!buyingCamelsEnabled) {
+                showAllSquares(true);
+                showEndTurnMessage(playerToMove);
+                finalizeTurn(players);
+            }
+        }
+        if (movingEnabled) {
+            try {
+                movingEnabled = false;
+                previousPlayer = getPlayerOnSquare(sqX, sqY);
+                showAdjacentSquares(sqX, sqY);
+                adjacentEnabled = true;
+            } catch (IllegalArgumentException exp) {
+                String[] message = exp.getMessage().split(" ");
+                if (message.length == 1) {
+                    JOptionPane.showMessageDialog(null, bundle.getString(message[0]), bundle.getString("exp.incorrectInput"), JOptionPane.ERROR_MESSAGE);
+                } else if (message.length == 2) {
+                    JOptionPane.showMessageDialog(null, String.format(bundle.getString(message[0]), message[1]), bundle.getString("exp.incorrectInput"), JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        }
+    }
+
+    @Override
+    public void stateChanged(ChangeEvent e) {
+        setSquareProperties();
+    }
+}

@@ -1,0 +1,33 @@
+region = 
+region.erg = 
+region.feshfesh = 
+region.guelta = 
+region.mountain = 
+region.rag = 
+region.saltlake = 
+region.saltmine = 
+region.settlement = 
+
+econValue = 
+stratValue = 
+sector = 
+player = 
+camels = 
+
+btn.initBoard = 
+btn.setRounds = 
+btn.nextRound = 
+btn.skip = 
+
+lbl.numberOfRounds = 
+lbl.currentRound = 
+lbl.numberOfTurns = 
+lbl.currentTurn = 
+
+msg.settlement = 
+msg.setRounds = 
+msg.roundStarted = 
+msg.playerToMove = 
+
+exp.numberFormat = 
+exp.incorrectInput = 

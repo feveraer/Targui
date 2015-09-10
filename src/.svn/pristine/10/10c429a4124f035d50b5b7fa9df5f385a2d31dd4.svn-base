@@ -1,0 +1,122 @@
+package domain;
+
+import java.util.Arrays;
+import java.util.Random;
+import utils.Collections;
+
+/**
+ * Represents one round.
+ *
+ * @author Frederic Everaert
+ * @author Gilles Baert
+ * @author Jonas De Bruycker
+ * @author Sander De Quick
+ */
+class Round {
+
+    private Turn[] turns;
+    private int currentTurnNumber = 0;
+    private Turn currentTurn;
+    private int[] evaluationPerPlayer;
+    private Player[] players;
+    private Fortune fortune;
+
+    public Round(Player[] players, Fortune fortune) {
+        this.players = players;
+        this.fortune = fortune;
+        populateTurns();
+    }
+    
+    private void populateTurns() {
+        int group = 0;
+        Random rnd = new Random();
+        int diceroll = rnd.nextInt(6) + 1;
+        if (diceroll < 6) {
+            turns = new Turn[diceroll * Game.MAX_PLAYERS + 1];
+            group = 1;
+        } else if (diceroll == 6) {
+            turns = new Turn[2 * Game.MAX_PLAYERS + 1];
+            group = 2;
+        }
+        for (int i = 0; i < turns.length - 1; i++) {
+            if (group == 2) {
+                turns[i] = players[i / group];
+            } else {
+                turns[i] = players[i % Game.MAX_PLAYERS];
+            }
+        }
+        turns[turns.length - 1] = fortune;
+        if (group == 1) {
+            Collections.shuffle(turns, group);
+        } else { //shuffle van array van 9 gaat niet per 2
+            Turn[] playerTurns = Arrays.copyOfRange(turns, 0, turns.length - 1);
+            //shuffle eerst de spelersbeurten
+            Collections.shuffle(playerTurns, group);
+            //turns = geshuffelde spelerbeurten per 2 en erachter fortune kaart
+            System.arraycopy(playerTurns, 0, turns, 0, turns.length - 1);
+            //bepaal nieuwe index voor fortune kaart
+            int indexFortune = rnd.nextInt(5) * 2;
+            //indien index = 8, turns array is al goed
+            if (indexFortune < 8) {
+                //bewaar eerst fortune kaart, anders kwijt na verschuiving
+                Turn fortuneCopy = turns[turns.length - 1];
+                //maak dan een plaats vrij in de turns array voor fortune kaart
+                for (int i = turns.length - 1; i > indexFortune; i--) {
+                    turns[i] = turns[i - 1];
+                }
+                //voeg fortune kaart in
+                turns[indexFortune] = fortuneCopy;
+            }
+        }
+    }
+    
+    public int[] evaluate(Square[][] squares) {
+        evaluationPerPlayer = new int[Game.MAX_PLAYERS];
+        boolean[] hasSettlement = new boolean[Game.MAX_PLAYERS];
+        for (int pIndex = 0; pIndex < evaluationPerPlayer.length; pIndex++) {
+            hasSettlement[pIndex] = false;
+            for (int i = 0; i < squares.length; i++) {
+                for (int j = 0; j < squares[i].length; j++) {
+                    //enkel zilver uitdelen aan speler als die nog zijn eigen nederzetting heeft
+                    if ((squares[i][j].getRegion().equals(Region.SETTLEMENT)
+                            && squares[i][j].getPlayer().getName().equals(players[pIndex].getName())
+                            && squares[i][j].getSector() == squares[i][j].getPlayer().getSector())) {
+                        hasSettlement[pIndex] = true;
+                    }
+                    try {
+                        if (squares[i][j].getPlayer().equals(players[pIndex])) {
+                            evaluationPerPlayer[pIndex] += squares[i][j].getRegion().getCurrentEconValue();
+                        }
+                    } catch (NullPointerException exp) {
+                        //no player on current square, do nothing
+                    }
+                }
+            }
+            if (!hasSettlement[pIndex]) {
+                evaluationPerPlayer[pIndex] = 0;
+            }
+        }
+        for (int i = 0; i < Game.MAX_PLAYERS; i++) {
+            players[i].setSilver(players[i].getSilver() + evaluationPerPlayer[i]);
+        }
+        return evaluationPerPlayer;
+    }
+
+    public int getCurrentTurnNumber() {
+        return currentTurnNumber;
+    }
+
+    public Turn getNextTurn() {
+        currentTurn = turns[currentTurnNumber];
+        currentTurnNumber++;
+        return currentTurn;
+    }
+    
+    public Turn getCurrentTurn() {
+        return currentTurn;
+    }
+
+    public int getNumberOfTurns() {
+        return turns.length;
+    }
+}

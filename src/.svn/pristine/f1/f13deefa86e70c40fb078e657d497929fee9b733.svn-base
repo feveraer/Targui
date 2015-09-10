@@ -1,0 +1,16 @@
+package domain;
+
+/**
+ * Interface to map methods.
+ * Can be replaced with lambda-expressions in Java 8.
+ *
+ * @author Frederic Everaert
+ * @author Gilles Baert
+ * @author Jonas De Bruycker
+ * @author Sander De Quick
+ */
+interface Action {
+
+    String doAction();
+
+}

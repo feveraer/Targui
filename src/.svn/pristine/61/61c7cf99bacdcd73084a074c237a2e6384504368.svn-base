@@ -1,0 +1,83 @@
+package gui;
+
+import domain.DomainController;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+
+/**
+ *
+ * @author Frederic
+ */
+public class StartJFrame extends JFrame {
+
+    private GameJPanel pnlGame;
+    private PlayersJPanel pnlPlayers;
+    private JButton btnNewGame;
+    private DomainController dc;
+
+    public StartJFrame(DomainController dc) {
+        this.dc = dc;
+        initComponents();
+    }
+
+    private void initComponents() {
+        pnlGame = new GameJPanel(dc);
+        pnlPlayers = new PlayersJPanel(dc);
+        btnNewGame = new JButton("New game");
+        btnNewGame.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                btnStartActionPerformed();
+            }
+        });
+
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
+        getContentPane().setLayout(layout);
+        layout.setHorizontalGroup(
+                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(layout.createSequentialGroup()
+                        .addGap(20, 20, 20)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addComponent(pnlGame)
+                                .addGroup(layout.createSequentialGroup()
+                                        .addComponent(pnlPlayers)
+                                        .addGap(70, 70, 70)
+                                        .addComponent(btnNewGame)))
+                        .addContainerGap(0, Short.MAX_VALUE))
+        );
+        layout.setVerticalGroup(
+                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(layout.createSequentialGroup()
+                        .addGap(21, 21, 21)
+                        .addComponent(pnlGame)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addGroup(layout.createSequentialGroup()
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                        .addComponent(pnlPlayers))
+                                .addGroup(layout.createSequentialGroup()
+                                        .addGap(30, 30, 30)
+                                        .addComponent(btnNewGame)))
+                        .addContainerGap(0, Short.MAX_VALUE))
+        );
+
+        setTitle("Targui demo");
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        pack();
+        setVisible(true);
+    }
+
+    public void activateBtnInitBoard() {
+        pnlGame.activateBtnInitBoard();
+    }
+    
+    public void activateBtnEditPlayer() {
+        pnlPlayers.activateBtnEditPlayer();
+    }
+    
+    private void btnStartActionPerformed() {
+        CreatePlayersJFrame createPlayersJFrame = new CreatePlayersJFrame(this, dc);
+        btnNewGame.setEnabled(false);
+    }
+}

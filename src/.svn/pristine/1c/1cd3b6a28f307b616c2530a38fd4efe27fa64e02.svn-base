@@ -1,0 +1,30 @@
+package domain;
+
+/**
+ * Represents one turn.
+ *
+ * @author Frederic Everaert
+ * @author Gilles Baert
+ * @author Jonas De Bruycker
+ * @author Sander De Quick
+ */
+class Turn {
+
+    private final Player player;
+    private final Action fortune;
+
+    public Turn(Player speler, Action fortune) {
+        this.player = speler;
+        this.fortune = fortune;
+    }
+
+    @Override
+    public String toString() {
+        if (fortune == null) {
+            return player.getName();
+        } else {
+            return fortune.doAction();
+        }
+    }
+
+}

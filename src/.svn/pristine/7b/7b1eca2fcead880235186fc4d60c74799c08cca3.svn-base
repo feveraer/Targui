@@ -1,0 +1,144 @@
+
+package gui;
+
+import domain.DomainController;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.sql.SQLException;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.KeyStroke;
+
+/**
+ *
+ * @author Frederic
+ */
+public class Menu extends JMenuBar {
+    
+    private DomainController dc;
+    private StartJFrame frmStart;
+    private JMenu file;
+    private JMenuItem newGame;
+    private JMenuItem loadGame;
+    private JMenuItem saveGame;
+    private JMenuItem exit;
+    
+    public Menu(DomainController dc, StartJFrame frmStart) {
+        this.dc = dc;
+        this.frmStart = frmStart;
+        initComponents();
+    }
+    
+    private void initComponents() {
+        file = new JMenu("File");
+        file.setMnemonic(KeyEvent.VK_F);
+        add(file);
+
+        newGame = new JMenuItem("New game");
+        newGame.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, ActionEvent.CTRL_MASK));
+        file.add(newGame);
+        loadGame = new JMenuItem("Load game");
+        loadGame.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_L, ActionEvent.CTRL_MASK));
+        file.add(loadGame);
+        saveGame = new JMenuItem("Save game");
+        saveGame.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK));
+        file.add(saveGame);
+        exit = new JMenuItem("Exit Targui");
+        exit.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F4, ActionEvent.ALT_MASK));
+        file.add(exit);
+        
+        newGame.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                newGameActionPerformed();
+            }
+        });
+        loadGame.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                loadGameActionPerformed();
+            }
+        });
+        saveGame.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                saveGameActionPerformed();
+            }
+        });
+        exit.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                exitActionPerformed();
+            }
+        });
+    }
+
+    public void newGameSetEnabled(boolean flag) {
+        newGame.setEnabled(flag);
+    }
+    
+    public void loadGameSetEnabled(boolean flag) {
+        loadGame.setEnabled(flag);
+    }
+    
+    public void saveGameSetEnabled(boolean flag) {
+        saveGame.setEnabled(flag);
+    }
+    
+    private void newGameActionPerformed() {
+        frmStart.btnPlayEnabled(false);
+        frmStart.btnSetRoundsEnabled(false);
+        dc.clearPlayerRepository();
+        dc.setBoardFilled(false);
+        dc.clearGame();
+        frmStart.setLblCurrentTurn("");
+        frmStart.setLblNumberOfTurns("");
+        frmStart.setBtnPlayText("Next round");
+        frmStart.resetBoard();
+        frmStart.resetSettlementsPlaced();
+        frmStart.btnNewGameSetEnabled(false);
+        frmStart.btnLoadSetEnabled(false);
+        frmStart.btnSaveSetEnabled(false);
+        new CreatePlayersJFrame(frmStart, dc);
+    }
+    
+    private void loadGameActionPerformed() {
+        frmStart.registerGameAsListener();
+        frmStart.registerBoardAsListener();
+        try {
+            new LoadGameJFrame(dc, frmStart, dc.getSavedGameNames());
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(null, "Can't connect to the database.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+    private void saveGameActionPerformed() {
+        boolean exitState = false;
+        while (!exitState) {
+            String saveName = JOptionPane.showInputDialog("Enter a unique save name");
+            if (saveName == null) {
+                exitState = true;
+            } else if (saveName.isEmpty()) {
+                exitState = false;
+                JOptionPane.showMessageDialog(null, "Name cannot be empty", "Incorrect input", JOptionPane.ERROR_MESSAGE);
+            } else {
+                try {
+                    dc.saveGame(saveName);
+                    exitState = true;
+                } catch (SQLException exp) {
+                    exitState = true;
+                    JOptionPane.showMessageDialog(null, "Can't connect to the database.", "Error", JOptionPane.ERROR_MESSAGE);
+                } catch (IllegalArgumentException exp) {
+                    JOptionPane.showMessageDialog(null, exp.getMessage(), "Incorrect input", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        }
+    }
+    
+    private void exitActionPerformed() {
+        System.exit(0);
+    }
+}

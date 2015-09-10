@@ -1,0 +1,261 @@
+package ui;
+
+import java.util.Scanner;
+import domain.DomainController;
+import java.util.InputMismatchException;
+
+/**
+ *
+ * @author Jonas
+ */
+public class UseCase3 {
+
+    public static void main(String[] args) {
+        Scanner input = new Scanner(System.in);
+        DomainController dc = new DomainController();
+        boolean[] geldig = new boolean[4];
+        
+        int[][] sectors = dc.getSectors();
+        
+        for(int i = 0; i<sectors.length; i++){
+            for(int a = 0;a<sectors[i].length; a++){
+                if(!(sectors[i][a]==-1))
+                    System.out.printf("%2s",(sectors[i][a]+1));
+                else
+                    System.out.print("  ");
+                
+            }
+            System.out.println("");
+            
+        }
+        
+        
+
+//        for (int i = 0; i < 4; i++) {
+//
+//            while (!geldig[i]) {
+//                try {
+//                    System.out.print("Enter Player " + (i + 1) + " name: ");
+//                    String name = input.next();
+//                    System.out.print("Choose your color: ");
+//                    String color = input.next();
+//                    System.out.print("Enter sector number (1 to 4): ");
+//                    int sector = input.nextInt() - 1;
+//                    dc.addPlayer(name, color, sector);
+//                    geldig[i] = true;
+//                } catch (IllegalArgumentException ex) {
+//                    System.err.println(ex.getMessage());
+//                    //System.err.flush();
+//                } catch (InputMismatchException exp) {
+//                    System.err.println("Enter a number from 1 to 4!");
+//                    //System.err.flush();
+//                }
+//            }
+//
+//        }
+        
+        //player 1
+    String name = "a";
+    String color = "blue";
+    int sector = 0;
+    dc.addPlayer(name, color, sector);
+    
+    //player 2
+    name = "b";
+    color = "red";
+    sector = 1;
+    dc.addPlayer(name, color, sector);
+    
+    //player 3
+    name = "c";
+    color = "green";
+    sector = 2;
+    dc.addPlayer(name, color, sector);
+    
+    //player 4
+    name = "d";
+    color = "cyan";
+    sector = 3;
+    dc.addPlayer(name, color, sector);
+        
+        
+        String[][] players = dc.getPlayers();
+        for(int i = 0; i<players.length;i++)
+        {
+            System.out.println("Player "+(i+1)+":");
+            System.out.println("Name: "+players[i][0]);
+            System.out.println("Color: "+players[i][1]);
+            System.out.println("Sector: "+players[i][2]);
+            System.out.println("Silver: "+players[i][3]+"\n");
+        }
+        
+  //Use case 2
+        
+        String[] playerNames = new String[4];
+        
+        for(int i = 0; i<players.length; i++)
+        {
+            playerNames[i] = players[i][0];
+        }
+        dc.addPlayersToGame(playerNames);
+        
+        try
+        {
+        dc.populateBoard();
+        }
+        catch(InterruptedException iex)
+        {System.err.println("Something went terribly wrong, restart the game!");}
+        
+        dc.getBoard();
+        
+//Show populated board
+        String[][][] board = dc.getBoard();
+        for(int i = 0; i<board.length; i++)
+        {
+            for(int j = 0; j < board[i].length; j++)
+            {
+                //for(int k = 0; k < board[i][j].length; k++)
+                //{
+//                    System.out.printf("%20s",board[i][j][0]);
+//                    System.out.printf("%s",board[i][j][1]);
+//                    System.out.printf("%s",board[i][j][2]);
+//                    System.out.printf("%s",board[i][j][3]);
+                    
+                    System.out.printf("[%10s %2d %2s %2s]",
+                        board[i][j][0],
+                        Integer.parseInt(board[i][j][1]) + 1,
+                        board[i][j][2],
+                        board[i][j][3]);;
+                    
+                //}
+                System.out.print("  ");
+            }
+            System.out.print("\n");
+        }
+        
+        //Request settlement position + insert settlement position
+        
+        int xCoord = 0;
+        int yCoord = 0;
+        dc.placeSettlement(playerNames[0], xCoord, yCoord);
+        
+        xCoord = 0;
+        yCoord = 6;
+        dc.placeSettlement(playerNames[1], xCoord, yCoord);
+        
+        xCoord = 6;
+        yCoord = 0;
+        dc.placeSettlement(playerNames[2], xCoord, yCoord);
+        
+        xCoord = 6;
+        yCoord = 6;
+        dc.placeSettlement(playerNames[3], xCoord, yCoord);
+        
+        System.out.print("\n\n\n");
+//        boolean[] good = new boolean[4];
+//        for(int i = 0; i < playerNames.length; i++)
+//        {
+//            while(!good[i])
+//            {
+//                try
+//                {
+//                    System.out.println(playerNames[i]+", please select a square to replace with your settlement. (1-7)");
+//                    System.out.print("Enter X-Coordinate: ");
+//                    int xCoord = (input.nextInt()-1);
+//                    System.out.print("Enter Y-Coordinate: ");
+//                    int yCoord = (input.nextInt()-1);
+//                    dc.placeSettlement(playerNames[i], xCoord, yCoord);
+//                    good[i]=true;
+//                }
+//                catch(InputMismatchException ime)
+//                {
+//                    System.err.println("Pick a coordinate in your sector!");
+//                }
+//                catch(IndexOutOfBoundsException iob)
+//                {
+//                    System.err.println(iob.getMessage());
+//                }
+//                catch(UnsupportedOperationException uoe)
+//                {
+//                    System.err.println(uoe.getMessage());
+//                }
+//                catch(IllegalArgumentException iae)
+//                {
+//                    System.err.println("Pick a coordinate in your sector!");
+//                }
+//            }
+//        }
+        String[][][] boardUpdate = dc.getBoard();
+        
+        for(int i = 0; i<boardUpdate.length; i++)
+        {
+            for(int j = 0; j < boardUpdate[i].length; j++)
+            {
+                //for(int k = 0; k < board[i][j].length; k++)
+                //{
+//                    System.out.printf("%20s",board[i][j][0]);
+//                    System.out.printf("%s",board[i][j][1]);
+//                    System.out.printf("%s",board[i][j][2]);
+//                    System.out.printf("%s",board[i][j][3]);
+                    
+                    System.out.printf("[%10s %2d %2s %2s %2s %5s %2s]",
+                        boardUpdate[i][j][0],
+                        Integer.parseInt(boardUpdate[i][j][1]) + 1,
+                        boardUpdate[i][j][2],
+                        boardUpdate[i][j][3],
+                        boardUpdate[i][j][4],
+                        boardUpdate[i][j][5],
+                        boardUpdate[i][j][6]);
+                    
+                //}
+                System.out.print("  ");
+            }
+            System.out.print("\n");
+        }
+        
+//Use Case 3 Begin  !!Nog problemen met InputMismatchException
+        
+        System.out.print("\n\n\n");
+        boolean good = false;
+        while(!good)
+       {
+        try
+        {
+            System.out.print("Enter number of rounds (1-16):");
+            int rounds = input.nextInt();
+            dc.setupRounds(rounds);
+            good = true;
+        }
+        catch(InputMismatchException ime)
+        {
+            System.out.println("Enter a number from 1 to 16!");
+        }
+        catch(Exception e){e.getMessage();}
+       }
+        
+        System.out.println("Number of rounds: "+dc.getNumberOfRounds());
+        
+
+        do
+        {
+            System.out.print("Next round? Enter Y: ");
+            String next = input.next();
+            next.toLowerCase();
+            if(next.charAt(0) == 'y'|| next.isEmpty())
+            {
+                dc.getNextTurn();
+                System.out.printf("Round %d\nTurn %d of %d\n",
+                    dc.getCurrentRoundNumber(),
+                    dc.getCurrentTurnNumber(),
+                    dc.getNumberOfTurns());
+            }
+            else
+                System.exit(0);
+        }
+        while(dc.getVictor().isEmpty());
+        
+        
+        
+    }
+
+}

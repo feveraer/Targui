@@ -1,0 +1,34 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+package persistentie;
+
+
+
+/**
+ *
+ * @author Sander
+ */
+public class Persistentiecontroller {
+
+    GameMapper gameMapper = new GameMapper();
+    SquareMapper squareMapper = new SquareMapper();
+    PlayerMapper playerMapper = new PlayerMapper();
+    
+    public void saveGame(String[] gameConf, String[][] squareConf, String[][] playerConf, String gameNaam){
+        gameMapper.saveGame(gameConf,gameNaam);
+        squareMapper.saveSquares(squareConf);
+        playerMapper.savePlayers(playerConf);
+        
+    }
+    public String[] getSavedGame(String gameNaam){
+        int gameId=Integer.parseInt(gameMapper.getGame(gameNaam)[0]);
+        squareMapper.getSquares(gameId);
+        playerMapper.getPlayers(gameId);
+        return null;
+        
+    }
+}

@@ -1,0 +1,216 @@
+package domain;
+
+import java.util.List;
+import javax.swing.event.ChangeListener;
+
+/**
+ * DomainController of Targui. Gives access to the Game model and player
+ * repository.
+ *
+ * @author Frederic Everaert
+ * @author Gilles Baert
+ * @author Jonas De Bruycker
+ * @author Sander De Quick
+ */
+public class DomainController {
+
+    private final PlayerRepository PLAYERREPO = new PlayerRepository();
+    private Game game;
+
+    public void addRepoChangeListener(ChangeListener l) {
+        PLAYERREPO.addChangeListener(l);
+    }
+
+    public void removeRepoChangeListener(ChangeListener l) {
+        PLAYERREPO.removeChangeListener(l);
+    }
+
+    public void addGameChangeListener(ChangeListener l) {
+        game.addChangeListener(l);
+    }
+
+    public void removeGameChangeListener(ChangeListener l) {
+        game.removeChangeListener(l);
+    }
+
+    public void addPlayer(String name, String color, int sector) {
+        PLAYERREPO.addPlayer(name, color, sector);
+    }
+
+    public void setPlayerName(String oldName, String newName) {
+        PLAYERREPO.setPlayerName(oldName, newName);
+    }
+
+    public void setPlayerColor(String name, String color) throws IllegalArgumentException {
+        if (!Color.contains(color.toUpperCase())) {
+            throw new IllegalArgumentException("Unsupported color");
+        }
+        Color c = Color.valueOf(color.toUpperCase());
+        PLAYERREPO.setPlayerColor(name, c);
+    }
+
+    public void setPlayerSector(String name, int sector) {
+        PLAYERREPO.setPlayerSector(name, sector);
+    }
+
+    public void setPlayerSilver(String name, int silver) {
+        PLAYERREPO.setPlayerSilver(name, silver);
+    }
+
+    public String[][][] getBoard() {
+        if (game.getBoard() == null) {
+            throw new NullPointerException("Board has not been initialized yet");
+        }
+        String[][][] res = new String[Board.DIM][Board.DIM][5];
+        Square[][] squares = game.getBoard().getSquares();
+        for (int i = 0; i < squares.length; i++) {
+            for (int j = 0; j < squares[i].length; j++) {
+                boolean hasRegion = false;
+                try {
+                    res[i][j][0] = squares[i][j].getRegion().name();
+                    hasRegion = true;
+                } catch (NullPointerException exp) {
+                    res[i][j][0] = Integer.toString(squares[i][j].getSector());
+
+                }
+                if (hasRegion) {
+                    res[i][j][1] = Integer.toString(squares[i][j].getSector());
+                    res[i][j][3] = Integer.toString(squares[i][j].getCamels());
+                    try {
+                        res[i][j][2] = squares[i][j].getPlayer().getColor().name(); //Voorlopig kleur, naam ook nog
+                        res[i][j][4] = squares[i][j].getPlayer().getName();
+                    } catch (NullPointerException e) {
+                        res[i][j][2] = "";
+                        res[i][j][4] = "";
+                    }
+                }
+            }
+        }
+
+        return res;
+    }
+
+    public String[][] getPlayers() {
+        Player[] allPlayers = PLAYERREPO.getPlayers();
+        String[][] p = new String[allPlayers.length][Player.NUM_OF_ATTR];
+        for (int i = 0; i < allPlayers.length; i++) {
+            if (allPlayers[i] != null) {
+                p[i][0] = allPlayers[i].getName();
+                try {
+                    p[i][1] = allPlayers[i].getColor().name();
+                } catch (NullPointerException e) {
+                    p[i][1] = "";
+                }
+                p[i][2] = Integer.toString(allPlayers[i].getSector());
+                p[i][3] = Integer.toString(allPlayers[i].getSilver());
+            }
+        }
+        return p;
+    }
+
+    public String[] getColors() {
+        return Color.getColors();
+    }
+
+    public void newGame(String[] players) throws UnsupportedOperationException, IllegalArgumentException {
+        if (game != null) {
+            throw new UnsupportedOperationException("A game is already in progress");
+        }
+        Player[] p = new Player[Game.MAX_PLAYERS];
+        int check = 0;
+        for (String participant : players) {
+            if (PLAYERREPO.containsPlayer(participant)) {
+                p[check] = PLAYERREPO.getPlayer(participant);
+                check++;
+            }
+        }
+        if (check == Game.MAX_PLAYERS) {
+            game = new Game(p);
+        } else {
+            throw new IllegalArgumentException("One or more player names are invalid");
+        }
+    }
+
+    public void saveGame() {
+        throw new UnsupportedOperationException();
+    }
+
+    public void loadGame() {
+        throw new UnsupportedOperationException();
+    }
+
+    public void initBoard() {
+        game.initBoard();
+    }
+
+    public void populateBoard() throws InterruptedException {
+        game.populateBoard();
+    }
+
+    public void setupRounds(int numberOfRounds) {
+        game.setupRounds(numberOfRounds);
+    }
+
+    public void placeSettlement(String player, int x, int y) {
+        Player p = PLAYERREPO.getPlayer(player);
+        game.placeSettlement(p, x, y);
+    }
+
+    public int[][][] getRegionValuesOfRound() {
+        return game.getRegionValuesOfRound();
+    }
+
+    public int getNumberOfRounds() {
+        return game.getNumberOfRounds();
+    }
+
+    public int getCurrentRound() {
+        return game.getCurrentRound();
+    }
+
+    public int getCurrentTurn() {
+        return game.getCurrentTurn();
+    }
+
+    public int getNumberOfTurns() {
+        return game.getNumberOfTurns();
+    }
+
+    public String getNextTurn() {
+        return game.getNextTurn();
+    }
+
+    public String[] getRegions() {
+        return Region.getRegions();
+    }
+
+    public int[][] getSectors() {
+        return Board.getSectors();
+    }
+
+    public void move(String player, int xFrom, int yFrom, int xTo, int yTo, int numberOfCamels) {
+        Player p = PLAYERREPO.getPlayer(player);
+        game.move(p, xFrom, yFrom, xTo, yTo, numberOfCamels);
+    }
+
+    public void cancelAttack() {
+        game.cancelAttack();
+    }
+
+    public void purchaseCamels(String player, int x, int y, int numberOfCamels) {
+        Player p = PLAYERREPO.getPlayer(player);
+        game.purchaseCamels(p, x, y, numberOfCamels);
+    }
+
+    public int[][] getAdjacentMoveSquares(int x, int y) {
+        List<int[]> list = game.getAdjacentMoveSquares(x, y);
+        int[][] sq = new int[list.size()][2];
+        for (int i = 0; i < list.size(); i++) {
+            sq[i][0] = list.get(i)[0];
+            sq[i][1] = list.get(i)[1];
+        }
+        return sq;
+    }
+
+    // GetNextTurn array return?
+}

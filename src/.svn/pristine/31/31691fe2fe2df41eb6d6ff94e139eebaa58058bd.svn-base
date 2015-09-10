@@ -1,0 +1,70 @@
+package gui;
+
+import domain.DomainController;
+import java.awt.FlowLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.JButton;
+import javax.swing.JPanel;
+
+/**
+ *
+ * @author Frederic
+ */
+public class GameJPanel extends JPanel {
+
+    private BoardJPanel pnlBoard;
+    private JButton btnInitBoard;
+    private DomainController dc;
+
+    public GameJPanel(DomainController dc) {
+        this.dc = dc;
+        initComponents();
+    }
+
+    private void initComponents() {
+        pnlBoard = new BoardJPanel(dc);
+        btnInitBoard = new JButton("Initialize board");
+        btnInitBoard.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                btnInitBoardActionPerformed();
+            }
+        });
+        btnInitBoard.setEnabled(false);
+
+        setLayout(new FlowLayout());
+        add(pnlBoard);
+        add(btnInitBoard);
+        setVisible(true);
+    }
+    
+    public void activateBtnInitBoard() {
+        btnInitBoard.setEnabled(true);
+    }
+
+    private void btnInitBoardActionPerformed() {
+        String[][] allPlayers = dc.getPlayers();
+        String[] allPlayerNames = new String[allPlayers.length];
+        for (int i = 0; i < allPlayers.length; i++) {
+            allPlayerNames[i] = allPlayers[i][0];
+        }
+        dc.newGame(allPlayerNames);
+        pnlBoard.registerAsListener();
+        dc.initBoard();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    dc.populateBoard();
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(GameJPanel.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        }).start();
+        
+        btnInitBoard.setEnabled(false);
+    }
+}

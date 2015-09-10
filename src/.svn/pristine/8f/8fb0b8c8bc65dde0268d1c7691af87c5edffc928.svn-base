@@ -1,0 +1,61 @@
+package gui;
+
+import domain.DomainController;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+
+/**
+ *
+ * @author Frederic
+ */
+public class StartJFrame extends JFrame {
+
+    private JButton btnManagePlayers;
+    private JButton btnNewGame;
+    private DomainController dc;
+
+    public StartJFrame(DomainController dc) {
+        this.dc = dc;
+        LookAndFeel.setSystemLookAndFeel();
+        initComponents();
+    }
+
+    private void initComponents() {
+        btnManagePlayers = new JButton("Manage players");
+        btnManagePlayers.setBounds(30, 60, 200, 40);
+        btnManagePlayers.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                btnManagePlayersActionPerformed();
+            }
+        });
+        add(btnManagePlayers);
+
+        btnNewGame = new JButton("New game");
+        btnNewGame.setBounds(30, 125, 200, 40);
+        btnNewGame.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                btnNewGameActionPerformed();
+            }
+        });
+        add(btnNewGame);
+
+        setLayout(null);
+        setTitle("Targui demo - start");
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setSize(280, 280);
+        setLocationRelativeTo(null);
+        setVisible(true);
+    }
+
+    private void btnManagePlayersActionPerformed() {
+        new PlayersJFrame(dc);
+    }
+
+    private void btnNewGameActionPerformed() {
+        new GameJFrame(dc);
+    }
+}

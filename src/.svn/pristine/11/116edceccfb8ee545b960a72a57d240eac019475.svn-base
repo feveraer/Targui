@@ -1,0 +1,318 @@
+package gui;
+
+import domain.DomainController;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.Locale;
+import java.util.ResourceBundle;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.GroupLayout;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+
+/**
+ *
+ * @author Frederic
+ */
+public class GameJPanel extends JPanel implements ChangeListener {
+
+    private BoardJPanel pnlBoard;
+    private StartJFrame frmStart;
+    private JButton btnInitBoard;
+    private JButton btnSetRounds;
+    private JButton btnPlay;
+    private JLabel lblTxtNumberOfRounds;
+    private JLabel lblNumberOfRounds;
+    private JLabel lblTxtCurrentRound;
+    private JLabel lblCurrentRound;
+    private JLabel lblTxtNumberOfTurns;
+    private JLabel lblNumberOfTurns;
+    private JLabel lblTxtCurrentTurn;
+    private JLabel lblCurrentTurn;
+    private JScrollPane scrBoardInfo;
+    private JTextArea txaBoardInfo;
+    private boolean[] finalizedRounds;
+    private DomainController dc;
+    private ResourceBundle bundleGame;
+
+    public GameJPanel(StartJFrame frmStart, DomainController dc) {
+        this.frmStart = frmStart;
+        this.dc = dc;
+        setLanguage("en");
+        initComponents();
+    }
+
+    public void setLanguage(String lang) {
+        Locale locale = new Locale(lang);
+        bundleGame = ResourceBundle.getBundle("properties/game", locale);
+    }
+
+    private void initComponents() {
+        pnlBoard = new BoardJPanel(dc, this);
+        scrBoardInfo = new JScrollPane();
+        txaBoardInfo = new JTextArea();
+        txaBoardInfo.setText("");
+        txaBoardInfo.setEditable(false);
+        scrBoardInfo.setViewportView(txaBoardInfo);
+        btnInitBoard = new JButton(bundleGame.getString("btn.initBoard"));
+        btnInitBoard.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                btnInitBoardActionPerformed();
+            }
+        });
+        btnInitBoard.setEnabled(false);
+        btnSetRounds = new JButton(bundleGame.getString("btn.setRounds"));
+        btnSetRounds.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                btnSetRoundsActionPerformed();
+            }
+        });
+        btnSetRounds.setEnabled(false);
+        btnPlay = new JButton(bundleGame.getString("btn.nextRound"));
+        btnPlay.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                btnPlayActionPerformed();
+            }
+        });
+        btnPlay.setEnabled(false);
+        lblTxtNumberOfRounds = new JLabel(bundleGame.getString("lbl.numberOfRounds") + ":");
+        lblNumberOfRounds = new JLabel();
+        lblTxtCurrentRound = new JLabel(bundleGame.getString("lbl.currentRound") + ":");
+        lblCurrentRound = new JLabel();
+        lblTxtNumberOfTurns = new JLabel(bundleGame.getString("lbl.numberOfTurns") + ":");
+        lblNumberOfTurns = new JLabel();
+        lblTxtCurrentTurn = new JLabel(bundleGame.getString("lbl.currentTurn") + ":");
+        lblCurrentTurn = new JLabel();
+
+        GroupLayout layout = new GroupLayout(this);
+        this.setLayout(layout);
+        layout.setHorizontalGroup(
+                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(layout.createSequentialGroup()
+                        .addComponent(pnlBoard, 630, 630, 630)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addGroup(layout.createSequentialGroup()
+                                        .addGap(18, 18, 18)
+                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                                .addComponent(btnInitBoard)
+                                                .addComponent(btnSetRounds)
+                                                .addComponent(btnPlay)
+                                                .addComponent(scrBoardInfo)))
+                                .addGroup(layout.createSequentialGroup()
+                                        .addGap(18, 18, 18)
+                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                                .addGroup(layout.createSequentialGroup()
+                                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                                                .addComponent(lblTxtNumberOfRounds)
+                                                                .addComponent(lblTxtCurrentRound))
+                                                        .addGap(28, 28, 28)
+                                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                                                .addComponent(lblCurrentRound)
+                                                                .addComponent(lblNumberOfRounds)))
+                                                .addGroup(layout.createSequentialGroup()
+                                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                                                .addComponent(lblTxtNumberOfTurns)
+                                                                .addComponent(lblTxtCurrentTurn))
+                                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                                                .addComponent(lblCurrentTurn)
+                                                                .addComponent(lblNumberOfTurns))))))
+                        .addContainerGap())
+        );
+        layout.setVerticalGroup(
+                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addComponent(pnlBoard, 630, 630, 630)
+                .addGroup(layout.createSequentialGroup()
+                        .addComponent(scrBoardInfo, javax.swing.GroupLayout.PREFERRED_SIZE, 300, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(28, 28, 28)
+                        .addComponent(btnInitBoard)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(btnSetRounds)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(btnPlay)
+                        .addGap(25, 25, 25)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                .addComponent(lblTxtNumberOfRounds)
+                                .addComponent(lblNumberOfRounds))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                .addComponent(lblTxtCurrentRound)
+                                .addComponent(lblCurrentRound))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                .addComponent(lblTxtNumberOfTurns)
+                                .addComponent(lblNumberOfTurns))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                .addComponent(lblTxtCurrentTurn)
+                                .addComponent(lblCurrentTurn)))
+        );
+
+        setVisible(true);
+    }
+
+    public void activateBtnInitBoard() {
+        btnInitBoard.setEnabled(true);
+    }
+
+    public void btnSetRoundsEnabled(boolean flag) {
+        btnSetRounds.setEnabled(flag);
+    }
+
+    public void btnPlayEnabled(boolean flag) {
+        btnPlay.setEnabled(flag);
+    }
+
+    private void btnInitBoardActionPerformed() {
+        String[][] allPlayers = dc.getPlayers();
+        String[] allPlayerNames = new String[allPlayers.length];
+        for (int i = 0; i < allPlayers.length; i++) {
+            allPlayerNames[i] = allPlayers[i][0];
+        }
+        dc.newGame(allPlayerNames);
+        pnlBoard.registerAsListener();
+        dc.initBoard();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    dc.populateBoard();
+                    JOptionPane.showMessageDialog(null, bundleGame.getString("msg.settlement"));
+                    pnlBoard.setSettlementsEnabled(true);
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(GameJPanel.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        }).start();
+        btnInitBoard.setEnabled(false);
+    }
+
+    private void btnSetRoundsActionPerformed() {
+        boolean correctInput = false;
+        while (!correctInput) {
+            try {
+                dc.setupRounds(Integer.parseInt(JOptionPane.showInputDialog(bundleGame.getString("msg.setRounds"))));
+                correctInput = true;
+            } catch (NumberFormatException exp) {
+                JOptionPane.showMessageDialog(null, bundleGame.getString("exp.numberFormat"), bundleGame.getString("exp.incorrectInput"), JOptionPane.ERROR_MESSAGE);
+            } catch (IllegalArgumentException exp) {
+                JOptionPane.showMessageDialog(null, exp.getMessage(), bundleGame.getString("exp.incorrectInput"), JOptionPane.ERROR_MESSAGE);
+            }
+        }
+        btnSetRounds.setEnabled(false);
+        lblNumberOfRounds.setText(Integer.toString(dc.getNumberOfRounds()));
+        lblCurrentRound.setText(Integer.toString(dc.getCurrentRoundNumber()));
+        finalizedRounds = new boolean[dc.getNumberOfRounds()];
+        for (boolean round : finalizedRounds) {
+            round = false;
+        }
+        dc.addRepoChangeListener(this);
+        dc.addGameChangeListener(this);
+        setBoardInfo();
+        pnlBoard.setSquareMouseListeners();
+        btnPlay.setEnabled(true);
+        frmStart.btnSaveSetEnabled(true);
+    }
+
+    public void finalizeRound(int round) {
+        finalizedRounds[round - 1] = true;
+        frmStart.btnSaveSetEnabled(true);
+        btnPlay.setText(bundleGame.getString("btn.nextRound"));
+    }
+
+    public boolean isRoundFinalized(int round) {
+        return finalizedRounds[round - 1];
+    }
+
+    private void btnPlayActionPerformed() {
+        pnlBoard.showAllSquares(true);
+        String[][] players = dc.getPlayers();
+        if (dc.getCurrentRoundNumber() > 0
+                && (dc.getCurrentTurnNumber() == dc.getNumberOfTurns() 
+                && !isRoundFinalized(dc.getCurrentRoundNumber()))) {
+            pnlBoard.finalizeTurn(players);
+            pnlBoard.setBuyingCamelsEnabled(false);
+            pnlBoard.setAdjacentEnabled(false);
+            pnlBoard.setMovingEnabled(false);
+
+        } else if (dc.getCurrentRoundNumber() == 0
+                || dc.getCurrentTurnNumber() != dc.getNumberOfTurns() || dc.getCurrentRoundNumber() != dc.getNumberOfRounds()) {
+            String[] playerNames = new String[players.length];
+            for (int i = 0; i < players.length; i++) {
+                playerNames[i] = players[i][0];
+            }
+            String nextTurn = dc.getNextTurn();
+            if (dc.getCurrentTurnNumber() == 1) {
+                frmStart.btnSaveSetEnabled(false);
+                JOptionPane.showMessageDialog(null, String.format(bundleGame.getString("msg.roundStarted"), dc.getCurrentRoundNumber()));
+                btnPlay.setText(bundleGame.getString("btn.skip"));
+            }
+            boolean matchesPlayer = false;
+            for (String p : playerNames) {
+                if (p.equals(nextTurn)) {
+                    matchesPlayer = true;
+                }
+            }
+            if (matchesPlayer) {
+                JOptionPane.showMessageDialog(null, String.format(bundleGame.getString("msg.playerToMove"), nextTurn));
+                pnlBoard.showPlayerSquaresWithCamels(nextTurn);
+                pnlBoard.setBuyingCamelsEnabled(false);
+                pnlBoard.setAdjacentEnabled(false);
+                pnlBoard.setMovingEnabled(true);
+            } else {
+                pnlBoard.setBuyingCamelsEnabled(false);
+                pnlBoard.setAdjacentEnabled(false);
+                pnlBoard.setMovingEnabled(false);
+                JOptionPane.showMessageDialog(null, nextTurn);
+            }
+            lblCurrentRound.setText(Integer.toString(dc.getCurrentRoundNumber()));
+            lblNumberOfTurns.setText(Integer.toString(dc.getNumberOfTurns()));
+            lblCurrentTurn.setText(Integer.toString(dc.getCurrentTurnNumber()));
+        }
+    }
+
+    public void setBoardInfo() {
+        String boardInfoTxt = "";
+        String[][][] board = dc.getBoard();
+        for (int i = 0; i < 7; i++) {
+            for (int j = 0; j < 7; j++) {
+                boardInfoTxt += String.format("[%s, %s, %s, %d, %s, %s]  ",
+                        bundleGame.getString("region." + board[i][j][0].toLowerCase()), board[i][j][1], board[i][j][2],
+                        Integer.parseInt(board[i][j][3]) + 1, board[i][j][4], board[i][j][6]);
+            }
+            boardInfoTxt += "\n\n";
+        }
+        txaBoardInfo.setText(boardInfoTxt);
+    }
+
+    public void setBoardInfo(int sqX, int sqY) {
+        String boardInfoTxt = "";
+        String[][][] board = dc.getBoard();
+
+        boardInfoTxt += String.format(bundleGame.getString("region").toUpperCase() + ": %s\n"
+                + bundleGame.getString("econValue").toUpperCase() + ": %s\n"
+                + bundleGame.getString("stratValue").toUpperCase() + ": %s\n"
+                + bundleGame.getString("sector").toUpperCase() + ": %d\n"
+                + bundleGame.getString("player").toUpperCase() + ": %s\n"
+                + bundleGame.getString("camels").toUpperCase() + ": %s\n",
+                bundleGame.getString("region." + board[sqX][sqY][0].toLowerCase()), board[sqX][sqY][1], board[sqX][sqY][2],
+                Integer.parseInt(board[sqX][sqY][3]) + 1, board[sqX][sqY][4], board[sqX][sqY][6]);
+
+        txaBoardInfo.setText(boardInfoTxt);
+    }
+
+    @Override
+    public void stateChanged(ChangeEvent e) {
+        setBoardInfo();
+    }
+}

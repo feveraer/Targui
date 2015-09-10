@@ -1,0 +1,83 @@
+package gui;
+
+import domain.DomainController;
+import java.awt.BorderLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.sql.SQLException;
+import java.util.List;
+import javax.swing.DefaultListModel;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JList;
+import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
+import javax.swing.ListSelectionModel;
+
+/**
+ *
+ * @author Frederic
+ */
+public class LoadGameJFrame extends JFrame {
+
+    private DomainController dc;
+    private StartJFrame frmStart;
+    private List<String> savedGameNames;
+    private JList listSavedGames;
+    private JScrollPane listScrollPane;
+    private JButton btnConfirm;
+
+    public LoadGameJFrame(DomainController dc, StartJFrame frmStart, List<String> savedGameNames) {
+        this.dc = dc;
+        this.frmStart = frmStart;
+        this.savedGameNames = savedGameNames;
+        initComponents();
+    }
+
+    private void initComponents() {
+        DefaultListModel listModel = new DefaultListModel();
+        for (String g : savedGameNames) {
+            listModel.addElement(g);
+        }
+        listSavedGames = new JList(listModel);
+        listSavedGames.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        listSavedGames.setSelectedIndex(0);
+        listSavedGames.setVisibleRowCount(5);
+        listScrollPane = new JScrollPane(listSavedGames);
+        btnConfirm = new JButton(bundle.getString("menu.load"));
+        btnConfirm.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                btnConfirmActionPerformed();
+            }
+        });
+
+        setLayout(new BorderLayout());
+        add(listScrollPane, BorderLayout.CENTER);
+        add(btnConfirm, BorderLayout.SOUTH);
+        setTitle(bundle.getString("menu.load"));
+        setSize(300, 300);
+        setVisible(true);
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        setLocationRelativeTo(frmStart);
+    }
+
+    private void btnConfirmActionPerformed() {
+        try {
+            dc.loadGame(listSavedGames.getSelectedValue().toString());
+            dc.setGameLoaded(true);
+            frmStart.setSquareMouseListeners();
+            frmStart.setFinalizedRounds(dc.getCurrentRoundNumber());
+            frmStart.activateBtnEditPlayer();
+            frmStart.btnPlayEnabled(true);
+            frmStart.setLblCurrentTurn("");
+            frmStart.setLblNumberOfTurns("");
+            frmStart.setBtnPlayText(bundle.getString("btn.nextRound"));
+            frmStart.resetBoard();
+            dispose();
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(null, bundle.getString("db.failed"), bundle.getString("main.error"), JOptionPane.ERROR_MESSAGE);
+            dispose();
+        }
+    }
+}

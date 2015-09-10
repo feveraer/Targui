@@ -1,0 +1,214 @@
+package gui;
+
+import domain.DomainController;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.FlowLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+
+/**
+ *
+ * @author Frederic
+ */
+public class GameJPanel extends JPanel implements ChangeListener {
+
+    private BoardJPanel pnlBoard;
+    private JButton btnInitBoard;
+    private JButton btnSetRounds;
+    private JButton btnPlay;
+    private JLabel lblNumberOfRounds;
+    private JLabel lblCurrentRound;
+    private JLabel lblNumberOfTurns;
+    private JLabel lblCurrentTurn;
+    private JScrollPane scrBoardInfo;
+    private JTextArea txaBoardInfo;
+    private DomainController dc;
+    
+    private GridBagLayout layout;
+    private GridBagConstraints constraints;
+
+    public GameJPanel(DomainController dc) {
+        this.dc = dc;
+        initComponents();
+    }
+
+    private void initComponents() {
+        pnlBoard = new BoardJPanel(dc, this);
+        scrBoardInfo = new JScrollPane();
+        txaBoardInfo = new JTextArea();
+        txaBoardInfo.setText("");
+        txaBoardInfo.setEditable(false);
+        txaBoardInfo.setColumns(30);
+        txaBoardInfo.setRows(20);
+        scrBoardInfo.setViewportView(txaBoardInfo);
+        btnInitBoard = new JButton("Initialize board");
+        btnInitBoard.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                btnInitBoardActionPerformed();
+            }
+        });
+        btnInitBoard.setEnabled(false);
+        btnSetRounds = new JButton("Set rounds");
+        btnSetRounds.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                btnSetRoundsActionPerformed();
+            }
+        });
+        btnSetRounds.setEnabled(false);
+        btnPlay = new JButton("Play");
+        btnPlay.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                btnPlayActionPerformed();
+            }
+        });
+        btnPlay.setEnabled(false);
+        lblNumberOfRounds = new JLabel();
+        lblCurrentRound = new JLabel();
+        lblNumberOfTurns = new JLabel();
+        lblCurrentTurn = new JLabel();
+
+        layout = new GridBagLayout();
+        setLayout(layout);
+        constraints = new GridBagConstraints();
+        constraints.fill = GridBagConstraints.NONE;
+        constraints.insets = new Insets(10, 10, 10, 10);
+        addComponent(pnlBoard, 0, 0, 4, 4);
+        addComponent(scrBoardInfo, 0, 4, 4, 3);
+        addComponent(btnInitBoard, 3, 4, 1, 1);
+        addComponent(btnSetRounds, 3, 5, 1, 1);
+        addComponent(btnPlay, 3, 6, 1, 1);
+        addComponent(lblNumberOfRounds, 3, 7, 1, 1);
+        addComponent(lblCurrentRound, 3, 8, 1, 1);
+        addComponent(lblNumberOfTurns, 3, 9, 1, 1);
+        addComponent(lblCurrentTurn, 3, 10, 1, 1);
+        setVisible(true);
+    }
+
+    private void addComponent(Component component, int row, int column,
+            int width, int height) {
+        constraints.gridx = column;
+        constraints.gridy = row;
+        constraints.gridwidth = width;
+        constraints.gridheight = height;
+        layout.setConstraints(component, constraints);
+        add(component);
+    }
+
+    public void activateBtnInitBoard() {
+        btnInitBoard.setEnabled(true);
+    }
+
+    public void btnSetRoundsEnabled(boolean flag) {
+        btnSetRounds.setEnabled(flag);
+    }
+
+    private void btnInitBoardActionPerformed() {
+        String[][] allPlayers = dc.getPlayers();
+        String[] allPlayerNames = new String[allPlayers.length];
+        for (int i = 0; i < allPlayers.length; i++) {
+            allPlayerNames[i] = allPlayers[i][0];
+        }
+        dc.newGame(allPlayerNames);
+        pnlBoard.registerAsListener();
+        dc.initBoard();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    dc.populateBoard();
+                    JOptionPane.showMessageDialog(null, "Choose the location of each player's settlement");
+                    pnlBoard.setSettlementsEnabled(true);
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(GameJPanel.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        }).start();
+        btnInitBoard.setEnabled(false);
+    }
+
+    private void btnSetRoundsActionPerformed() {
+        boolean correctInput = false;
+        while (!correctInput) {
+            try {
+                dc.setupRounds(Integer.parseInt(JOptionPane.showInputDialog("Enter number of rounds")));
+                correctInput = true;
+            } catch (NumberFormatException exp) {
+                JOptionPane.showMessageDialog(null, "Enter a number!", "Incorrect input", JOptionPane.ERROR_MESSAGE);
+            } catch (IllegalArgumentException exp) {
+                JOptionPane.showMessageDialog(null, exp.getMessage(), "Incorrect input", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+        btnSetRounds.setEnabled(false);
+        lblNumberOfRounds.setText(Integer.toString(dc.getNumberOfRounds()));
+        lblCurrentRound.setText(Integer.toString(dc.getCurrentRound()));
+        lblNumberOfTurns.setText(Integer.toString(dc.getNumberOfTurns()));
+        lblCurrentTurn.setText(Integer.toString(dc.getCurrentTurn()));
+        dc.addRepoChangeListener(this);
+        dc.addGameChangeListener(this);
+        setBoardInfo();
+        btnPlay.setEnabled(true);
+    }
+
+    private void btnPlayActionPerformed() {
+        pnlBoard.showAllSquares(true);
+        String[][] players = dc.getPlayers();
+        String[] playerNames = new String[players.length];
+        for (int i = 0; i < players.length; i++) {
+            playerNames[i] = players[i][0];
+        }
+        String nextTurn = dc.getNextTurn();
+        boolean matchesPlayer = false;
+        for (String p : playerNames) {
+            if (p.equals(nextTurn)) {
+                matchesPlayer = true;
+            }
+        }
+        if (matchesPlayer) {
+            JOptionPane.showMessageDialog(null, "It's " + nextTurn + "'s turn to move.");
+            pnlBoard.showPlayerSquares(nextTurn);
+            pnlBoard.setMovingEnabled(true);
+        } else {
+            JOptionPane.showMessageDialog(null, nextTurn);
+        }
+        lblCurrentRound.setText(Integer.toString(dc.getCurrentRound()));
+        lblNumberOfTurns.setText(Integer.toString(dc.getNumberOfTurns()));
+        lblCurrentTurn.setText(Integer.toString(dc.getCurrentTurn()));
+    }
+
+    private void setBoardInfo() {
+        String boardInfoTxt = "";
+        String[][][] board = dc.getBoard();
+        int[][][] regionValues = dc.getRegionValuesOfRound();
+        for (int i = 0; i < 7; i++) {
+            for (int j = 0; j < 7; j++) {
+                boardInfoTxt += String.format("[%s, %s, %s, %d, %s, %s]  ",
+                        board[i][j][0], regionValues[i][j][0], regionValues[i][j][1],
+                        Integer.parseInt(board[i][j][1]) + 1, board[i][j][2], board[i][j][3]);
+            }
+            boardInfoTxt += "\n\n";
+        }
+        txaBoardInfo.setText(boardInfoTxt);
+    }
+
+    @Override
+    public void stateChanged(ChangeEvent e) {
+        setBoardInfo();
+    }
+}

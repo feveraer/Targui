@@ -1,0 +1,58 @@
+package domein;
+
+public class Speler {
+
+    public static final int NUM_OF_ATTR = 4;
+    private final String naam;
+    private final String kleur;
+    private final Sector sector;
+    private int geldstukken = 15;
+
+    /**
+     *
+     * @param naam
+     * @param kleur
+     * @param sector
+     */
+    public Speler(String naam, String kleur, Sector sector) {
+        this.naam = naam;
+        this.kleur = kleur;
+        this.sector = sector;
+    }
+
+    /**
+     * @return the naam
+     */
+    public String getNaam() {
+        return naam;
+    }
+
+    /**
+     * @return the sector
+     */
+    public Sector getSector() {
+        return sector;
+    }
+
+    /**
+     * @return the kleur
+     */
+    public String getKleur() {
+        return kleur;
+    }
+
+    /**
+     * @return the geldstukken
+     */
+    public int getGeldstukken() {
+        return geldstukken;
+    }
+
+    /**
+     * @param geldstukken the geldstukken to set
+     */
+    public void setGeldstukken(int geldstukken) {
+        this.geldstukken = geldstukken;
+    }
+
+}

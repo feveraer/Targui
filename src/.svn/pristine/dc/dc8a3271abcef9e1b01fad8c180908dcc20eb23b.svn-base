@@ -1,0 +1,27 @@
+- default
+    DONE
+
+- domain
+    DONE
+
+- ui
+    - database uc's
+    - opsplitsing code in verschillende methodes
+    - meertaligheid
+
+- gui
+    - legende maken
+
+- persistence
+    - javadoc
+
+- properties
+    DONE
+
+- utils
+    DONE
+
+- ???
+    javadoc ook voor gui en ui                  NEE
+    moet meertaligheid voor consoleapp          JA
+    wat wordt er bedoeld met ontwerp vd schermen (staat in brochure)    SCREENSHOTS SCHERMEN

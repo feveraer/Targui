@@ -1,0 +1,30 @@
+
+import domain.DomainController;
+import gui.StartJFrame;
+import javax.swing.SwingUtilities;
+
+/**
+ * Startup class for application
+ *
+ * @author Frederic Everaert
+ * @author Gilles Baert
+ * @author Jonas De Bruycker
+ * @author Sander De Quick
+ */
+public class StartUp {
+
+    /**
+     * The main method to start up the Targui GUI.
+     *
+     * @param args
+     */
+    public static void main(String[] args) {
+        final DomainController dc = new DomainController();
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                new StartJFrame(dc);
+            }
+        });
+    }
+}

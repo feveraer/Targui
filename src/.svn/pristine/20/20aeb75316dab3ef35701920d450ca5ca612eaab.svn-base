@@ -1,0 +1,69 @@
+package domein;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Repository holding all players.
+ *
+ * @author Frederic Everaert
+ * @author Gilles Baert
+ * @author Jonas De Bruycker
+ * @author Sander De Quick
+ */
+public class PlayerRepository extends Model {
+
+    private final List<Player> players = new ArrayList<>();
+
+    public void addPlayer(String name) throws IllegalArgumentException {
+        if (checkDuplicateName(name)) {
+            throw new IllegalArgumentException("Player named '" + name + "' already exists");
+        }
+        players.add(new Player(name, this));
+        fireStateChanged();
+    }
+
+    public void removePlayer(String name) throws IllegalArgumentException {
+        for (Player p : players) {
+            if (p.getName().equals(name)) {
+                players.remove(p);
+                fireStateChanged();
+                break;
+            }
+            throw new IllegalArgumentException("Player with '" + name + "' not found");
+        }
+    }
+
+    public void editPlayerName(String oldName, String newName) throws IllegalArgumentException {
+        if (oldName.equals(newName)) {
+            return;
+        }
+        if (checkDuplicateName(newName)) {
+            throw new IllegalArgumentException("Player named '" + newName + "' already exists");
+        }
+        for (Player p : players) {
+            if (p.getName().equals(oldName)) {
+                p.setName(newName);
+                fireStateChanged();
+                break;
+            } else {
+                throw new IllegalArgumentException("Player named '" + oldName + "' not found");
+            }
+        }
+
+    }
+
+    private boolean checkDuplicateName(String name) {
+        for (Player p : players) {
+            if (p.getName().equals(name)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public List<Player> getPlayers() {
+        return players;
+    }
+
+}

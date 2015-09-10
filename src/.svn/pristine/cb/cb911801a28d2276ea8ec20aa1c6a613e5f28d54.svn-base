@@ -1,0 +1,11 @@
+package domein;
+
+//TODO implementeer via hashmap, verwijder subklassen
+public abstract class Gebiedskaart {
+
+	public Gebiedskaart() {
+		// TODO - implement Gebiedskaart.Gebiedskaart
+		
+	}
+
+}

@@ -1,0 +1,25 @@
+- default
+    DONE
+
+- domain
+    DONE
+
+- ui
+    - fixes
+
+- gui
+    - fixes
+    - import cleanup
+    - javadoc
+    - menu bar (game, options, help)                              //mss nog help
+    - legende maken
+
+- persistence
+    - javadoc
+
+- properties
+    - vertalingen (nederlands, frans)
+
+- utils
+    DONE
+

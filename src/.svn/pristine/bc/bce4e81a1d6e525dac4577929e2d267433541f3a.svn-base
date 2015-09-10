@@ -1,0 +1,172 @@
+package domein;
+
+import java.util.List;
+import javax.swing.event.ChangeListener;
+
+/**
+ * DomainController of the domain. Gives access to the model.
+ *
+ * @author Frederic Everaert
+ * @author Gilles Baert
+ * @author Jonas De Bruycker
+ * @author Sander De Quick
+ */
+public class DomainController {
+
+    private final ModelTargui model = new ModelTargui();
+
+    public void addChangeListener(ChangeListener l) {
+        model.addChangeListener(l);
+    }
+
+    public void removeChangeListener(ChangeListener l) {
+        model.removeChangeListener(l);
+    }
+
+    public void addPlayer(String player) {
+        model.addPlayer(player);
+    }
+
+    public void removePlayer(String name) {
+        model.removePlayer(name);
+    }
+
+    public void editPlayerName(String oldName, String newName) {
+        model.editPlayerName(oldName, newName);
+    }
+
+    public String[][] getPlayers() {
+        List<Player> l = model.getRepo().getPlayers();
+        String[][] p = new String[l.size()][Player.NUM_OF_ATTR];
+        for (int i = 0; i < l.size(); i++) {
+            p[i][0] = l.get(i).getName();
+            p[i][1] = l.get(i).getColor();
+            p[i][2] = Integer.toString(l.get(i).getSector().getSectorNr());
+            p[i][3] = Integer.toString(l.get(i).getSilver());
+        }
+        return p;
+    }
+    
+    public String[] getColors() {
+        return Color.getColors();
+    }
+    
+    public void newGame() {
+        model.newGame();
+    }
+    
+
+    //------------------------------------------------------------------------
+    /**
+     * Initialiseert een nieuw spel, geef alle aangemaakte spelers mee.
+     */
+    public void startNieuwSpel() {
+        spel = new Game(repo.getSpelers());
+    }
+
+    /**
+     * Configuratie van het spelbord.
+     */
+    public void vulSpelbord() {
+        spel.vulSpelbord();
+    }
+
+    /**
+     * Plaatst een gebiedskaart van het type nederzetting op een specifiek vak.
+     *
+     * @param spelerNr Nummer van de speler
+     * @param vakX X-coördinaat van het gewenste vak
+     * @param vakY Y-coördinaat van het gewenste vak
+     */
+    public void plaatsNederzetting(int spelerNr, int vakX, int vakY) throws IllegalArgumentException {
+        if (spelerNr < 0 || spelerNr > 3) {
+            throw new IllegalArgumentException("Gelieve een geldig spelernummer op te geven.");
+        } else {
+            Player[] spelers = repo.getSpelers();
+            spel.plaatsNederzetting(spelers[spelerNr], vakX, vakY);
+            spelers[spelerNr].addVak(spel.getSpelbord().getVakken()[vakX][vakY]);
+        }
+    }
+
+    /**
+     * Legt het aantal ronden vast.
+     *
+     * @param aantalRonden
+     */
+    public void kiesAantalRonden(int aantalRonden) {
+        spel.kiesAantalRonden(aantalRonden);
+    }
+
+    public void speelRonde() {
+        spel.speelRonde();
+    }
+
+    public String[][] getAdjecenteVakken(int vakX, int vakY) {
+        spel.getSpelbord().getAdjecenteVakken(vakX, vakY);
+        //TODO converteer vakken naar string[][]
+        return null;
+    }
+
+    public String[][] getVakken(int spelerNr) {
+        List<Square> vakken = repo.getSpelers()[spelerNr].getVakken();
+        String[][] res = new String[vakken.size()][Spelbord.AANTAL_ATTR];
+        for (int i = 0; i < res.length; i++) {
+            for (int j = 0; j < Spelbord.AANTAL_ATTR; j++) {
+                res[i][0] = vakken.get(i).getGebied().name();
+                res[i][1] = Integer.toString(vakken.get(i).getSector().getSectorNr());
+                res[i][2] = vakken.get(i).getSpeler().getKleur();
+                res[i][3] = Integer.toString(vakken.get(i).getAantalKamelen());
+            }
+        }
+        return res;
+    }
+
+    /**
+     * Retourneert het huidig spelobject. De volgorde van de attributen is:
+     * gebiedskaart, sector , markeringsteken, aantal kamelen.
+     *
+     * @return 3D array van het spelbord en relevante attributen.
+     */
+    public String[][][] geefSpel() {
+        if (!spel.isSpelbordGevuld()) {
+            Square[][] spelbord = spel.getSpelbord().getVakken();
+            String[][][] res = new String[Spelbord.DIM][Spelbord.DIM][1];
+            for (int i = 0; i < res.length; i++) {
+                for (int j = 0; j < res[i].length; j++) {
+                    try {
+                        res[i][j][0] = Integer.toString(spelbord[i][j].getSector().getSectorNr());
+                    } catch (NullPointerException e) {
+                        res[i][j][0] = "-1";
+                    }
+                }
+            }
+            return res;
+        } else {
+            Square[][] spelbord = spel.getSpelbord().getVakken();
+            String[][][] res = new String[Spelbord.DIM][Spelbord.DIM][Spelbord.AANTAL_ATTR];
+            for (int i = 0; i < res.length; i++) {
+                for (int j = 0; j < res[i].length; j++) {
+                    res[i][j][0] = spelbord[i][j].getGebied().name();
+                    try {
+                        res[i][j][1] = Integer.toString(spelbord[i][j].getSector().getSectorNr());
+                    } catch (NullPointerException e) {
+                        res[i][j][1] = "-1";
+                    }
+                    res[i][j][2] = spelbord[i][j].getSpeler().getKleur();
+                    res[i][j][3] = Integer.toString(spelbord[i][j].getAantalKamelen());
+                }
+            }
+            return res;
+        }
+    }
+
+    /**
+     * Retourneert het eindresultaat van een ronde
+     *
+     * @return array met de resultaten in stringvorm.
+     */
+    public String geefEindresultaatRonde() {
+        return spel.geefEindresultaatRonde();
+    }
+
+}

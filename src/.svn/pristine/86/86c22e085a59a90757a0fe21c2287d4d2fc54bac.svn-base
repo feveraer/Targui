@@ -1,0 +1,18 @@
+import domein.DomainController;
+import gui.ConsoleApplication;
+
+/**
+ * Startup class for console application
+ *
+ * @author Frederic Everaert
+ * @author Gilles Baert
+ * @author Jonas De Bruycker
+ * @author Sander De Quick
+ */
+public class StartUp {
+
+    public static void main(String[] args) {
+        DomainController dc = new DomainController();
+        new ConsoleApplication(dc);
+    }
+}

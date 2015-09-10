@@ -1,0 +1,88 @@
+package domein;
+
+/**
+ * Representeert één vak.
+ *
+ * @author Frederic Everaert
+ * @author Gilles Baert
+ * @author Jonas De Bruycker
+ * @author Sander De Quick
+ */
+public class Square {
+
+    private Region gebied;
+    private Sector sector;
+    private Player speler;
+    private int aantalKamelen = 0;
+    
+    /**
+     * @param speler Playerobject
+     * @param gk Regionobject
+     */
+    public void plaatsGebiedskaart(Player speler, Region gk) {
+        if (this.getSector() == null || speler.getSector().getSectorNr() != this.getSector().getSectorNr()) {
+            throw new IllegalArgumentException("De nederzetting moet in jouw sector geplaatst worden.");
+        } else {
+            this.setGebied(gk);
+            this.setAantalKamelen(10);
+            this.speler = speler;
+        }
+    }
+
+    /**
+     * @return Region op een vak, kan null zijn
+     */
+    public Region getGebied() {
+        return gebied;
+    }
+
+    /**
+     * @param gebied Region
+     */
+    public void setGebied(Region gebied) {
+        this.gebied = gebied;
+    }
+
+    /**
+     * @return aantal kamelen aanwezig op een vak
+     */
+    public int getAantalKamelen() {
+        return aantalKamelen;
+    }
+
+    /**
+     * @param aantalKamelen aantal kamelen
+     */
+    public void setAantalKamelen(int aantalKamelen) {
+        this.aantalKamelen = (aantalKamelen < 0) ? 0 : aantalKamelen;
+    }
+
+    /**
+     * @return markeringsteken van vak
+     */
+    public Player getSpeler() {
+        return speler;
+    }
+
+    /**
+     * @param speler
+     */
+    public void setSpeler(Player speler) {
+        this.speler = speler;
+    }
+
+    /**
+     * @return sector van een bepaald vak
+     */
+    public Sector getSector() {
+        return sector;
+    }
+
+    /**
+     * @param sector sector
+     */
+    public void setSector(Sector sector) {
+        this.sector = sector;
+    }
+
+}

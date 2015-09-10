@@ -1,0 +1,34 @@
+package domein;
+
+//TODO implementeer via hashmap, verwijder subklassen
+public abstract class Gebiedskaart {
+
+    private String markeringsteken;
+    private int aantalKamelen;
+
+    public Gebiedskaart() {
+        // TODO - implement Gebiedskaart.Gebiedskaart
+
+    }
+
+    public int getAantalKamelen() {
+        return aantalKamelen;
+    }
+
+    public String getMarkeringsteken() {
+        return markeringsteken;
+    }
+
+    public void setMarkeringsteken(String markeringsteken) {
+        this.markeringsteken = markeringsteken;
+    }
+
+    public void setAantalKamelen(int aantalKamelen) {
+        this.aantalKamelen = aantalKamelen;
+    }
+
+    @Override
+    public String toString() {
+        return getClass().getSimpleName();
+    }
+}

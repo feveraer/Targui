@@ -1,0 +1,144 @@
+package gui;
+
+import domain.DomainController;
+import java.awt.BorderLayout;
+import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.List;
+import javax.swing.BorderFactory;
+import javax.swing.ComboBoxModel;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+
+/**
+ *
+ * @author Frederic
+ */
+public class CreatePlayersJFrame extends JFrame {
+
+    private JPanel pnlPlayer;
+    private JLabel lblName;
+    private JTextField txfName;
+    private JLabel lblColor;
+    private JComboBox cmbColor;
+    private JLabel lblSector;
+    private JComboBox cmbSector;
+    private JButton btnValidate;
+
+    private DomainController dc;
+    private StartJFrame previousFrame;
+    private int createdPlayers;
+    private List<String> chosenColors;
+    private List<String> chosenSectors;
+
+    public CreatePlayersJFrame(StartJFrame previousFrame, DomainController dc) {
+        this.previousFrame = previousFrame;
+        this.dc = dc;
+        initComponents();
+    }
+
+    private void initComponents() {
+        pnlPlayer = new JPanel();
+        pnlPlayer.setBorder(BorderFactory.createTitledBorder("Player " + (createdPlayers + 1)));
+        lblName = new JLabel("Name: ");
+        txfName = new JTextField();
+        txfName.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                btnValidateActionPerformed();
+            }
+        });
+        lblColor = new JLabel("Color: ");
+        cmbColor = new JComboBox(new DefaultComboBoxModel(dc.getColors()));
+        lblSector = new JLabel("Sector: ");
+        cmbSector = new JComboBox(new DefaultComboBoxModel(new String[]{"1", "2", "3", "4"}));
+        btnValidate = new JButton("Create player");
+        btnValidate.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                btnValidateActionPerformed();
+            }
+        });
+
+        pnlPlayer.setLayout(new GridLayout(3, 2));
+        pnlPlayer.add(lblName);
+        pnlPlayer.add(txfName);
+        pnlPlayer.add(lblColor);
+        pnlPlayer.add(cmbColor);
+        pnlPlayer.add(lblSector);
+        pnlPlayer.add(cmbSector);
+        pnlPlayer.setSize(200, 100);
+
+        setLayout(new BorderLayout());
+        add(pnlPlayer, BorderLayout.CENTER);
+        add(btnValidate, BorderLayout.SOUTH);
+        setTitle("Create players");
+        setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+        pack();
+        setVisible(true);
+        setLocationRelativeTo(null);
+
+        chosenColors = new ArrayList<>();
+        chosenSectors = new ArrayList<>();
+    }
+
+    private void checkChosen() {
+        String[][] players = dc.getPlayers();
+        for (int i = 0; i < createdPlayers; i++) {
+            if (players[i][1].equals((String) cmbColor.getSelectedItem())) {
+                chosenColors.add(players[i][1]);
+            }
+            String playerSector = Integer.toString(Integer.parseInt(players[i][2]) + 1);
+            if (playerSector.equals((String) cmbSector.getSelectedItem())) {
+                chosenSectors.add(playerSector);
+            }
+        }
+    }
+
+    private void nextPlayer() {
+        pnlPlayer.setBorder(BorderFactory.createTitledBorder("Player " + (createdPlayers + 1)));
+        txfName.setText("");
+        for (int i = 0; i < cmbColor.getItemCount(); i++) {
+            for (int j = 0; j < chosenColors.size(); j++) {
+                if (cmbColor.getItemAt(i).equals((Object) chosenColors.get(j))) {
+                    cmbColor.removeItemAt(i);
+                }
+            }
+        }
+        for (int i = 0; i < cmbSector.getItemCount(); i++) {
+            for (int j = 0; j < chosenSectors.size(); j++) {
+                if (cmbSector.getItemAt(i).equals((Object) chosenSectors.get(j))) {
+                    cmbSector.removeItemAt(i);
+                }
+            }
+        }
+        txfName.requestFocus();
+    }
+
+    private void btnValidateActionPerformed() {
+        try {
+            dc.addPlayer(txfName.getText(), (String) cmbColor.getSelectedItem(), Integer.parseInt((String) cmbSector.getSelectedItem()) - 1);
+            createdPlayers++;
+            if (createdPlayers == 4) {
+                btnValidate.setEnabled(false);
+                JOptionPane.showMessageDialog(null, "All 4 players created, the board can now be initialized.");
+                previousFrame.activateBtnInitBoard();
+                dispose();
+            }
+            checkChosen();
+            nextPlayer();
+        } catch (IllegalArgumentException exp) {
+            JOptionPane.showMessageDialog(null, exp.getMessage(), "Incorrect input", JOptionPane.ERROR_MESSAGE);
+            txfName.setText("");
+            txfName.requestFocus();
+        }
+    }
+}

@@ -1,0 +1,31 @@
+package domein;
+
+public class Sector {
+
+    private int sectorNr;
+
+    public Sector() {
+        this.sectorNr = -1;
+    }
+
+    public Sector(int sectorNr) {
+        setSectorNr(sectorNr);
+    }
+
+    /**
+     *
+     * @return sectorNr
+     */
+    public int getSectorNr() {
+        return sectorNr;
+    }
+
+    public void setSectorNr(int sectorNr) throws IllegalArgumentException {
+        if (sectorNr < 0 || sectorNr > 3) {
+            throw new IllegalArgumentException();
+        } else {
+            this.sectorNr = sectorNr;
+        }
+    }
+
+}

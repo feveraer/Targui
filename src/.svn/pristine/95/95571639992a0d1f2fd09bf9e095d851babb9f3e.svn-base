@@ -1,0 +1,40 @@
+package domein;
+
+/**
+ * Model of Targui. Simulates the game and holds PlayerRepository.
+ *
+ * @author Frederic Everaert
+ * @author Gilles Baert
+ * @author Jonas De Bruycker
+ * @author Sander De Quick
+ */
+public class ModelTargui extends Model {
+
+    private final PlayerRepository repo = new PlayerRepository(this);
+    private Game game;
+
+    public void addPlayer(String player) {
+        repo.addPlayer(player);
+    }
+
+    public void removePlayer(String player) {
+        repo.removePlayer(player);
+    }
+
+    public void editPlayerName(String oldName, String newName) {
+        repo.editPlayerName(oldName, newName);
+    }
+    
+    public Game getGame() {
+        return game;
+    }
+    
+    public PlayerRepository getRepo() {
+        return repo;
+    }
+    
+    public void newGame() {
+        game = new Game(this);
+    }
+
+}

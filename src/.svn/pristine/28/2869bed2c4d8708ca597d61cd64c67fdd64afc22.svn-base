@@ -1,0 +1,107 @@
+package gui;
+
+import domain.DomainController;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+
+/**
+ *
+ * @author Frederic
+ */
+public class StartJFrame extends JFrame {
+    
+    private GameJPanel pnlGame;
+    private PlayersJPanel pnlPlayers;
+    private JButton btnStart;
+    private DomainController dc;
+
+    public StartJFrame(DomainController dc) {
+        this.dc = dc;
+        initComponents();
+    }
+
+    private void initComponents() {
+        pnlGame = new GameJPanel(dc);
+        pnlPlayers = new PlayersJPanel(dc);
+        btnStart = new JButton("Start");
+        btnStart.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                btnStartActionPerformed();
+            }
+        });
+        
+        
+//        setLayout(new BorderLayout());
+//        add(pnlGame, BorderLayout.CENTER);
+//        add(pnlPlayers, BorderLayout.SOUTH);
+//        add(btnStart, BorderLayout.NORTH);
+        
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
+        getContentPane().setLayout(layout);
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addGap(20, 20, 20)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(pnlGame)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(pnlPlayers)
+                        .addGap(70, 70, 70)
+                        .addComponent(btnStart)))
+                .addContainerGap(0, Short.MAX_VALUE))
+        );
+        layout.setVerticalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addGap(21, 21, 21)
+                .addComponent(pnlGame)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(pnlPlayers))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(30, 30, 30)
+                        .addComponent(btnStart)))
+                .addContainerGap(0, Short.MAX_VALUE))
+        );
+        
+        setTitle("Targui demo");
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        pack();
+        setVisible(true);
+    }
+
+    private void btnStartActionPerformed() {
+        String name;
+        String color;
+        int sector;
+        boolean[] correctInput = {false, false, false, false};
+
+        for (int i = 0; i < 4; i++) {
+            while (!correctInput[i]) {
+                try {
+                    name = JOptionPane.showInputDialog(null, "Enter name player " + (i + 1));
+                    color = JOptionPane.showInputDialog(null, "Enter color player " + (i + 1));
+                    sector = Integer.parseInt(JOptionPane.showInputDialog(null, "Enter sector player " + (i + 1)));
+                    dc.addPlayer(name, color, sector - 1);
+                    correctInput[i] = true;
+                } catch (NumberFormatException exp) {
+                    JOptionPane.showMessageDialog(null, "Please enter a number", "Incorrect input", JOptionPane.ERROR_MESSAGE);
+                } catch (IllegalArgumentException exp) {
+                    JOptionPane.showMessageDialog(null, exp.getMessage(), "Incorrect input", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        }
+        
+        btnStart.setEnabled(false);
+        pnlGame.activateBtnInitBoard();
+    }
+}

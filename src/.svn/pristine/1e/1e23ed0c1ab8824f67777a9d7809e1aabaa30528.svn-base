@@ -1,0 +1,9 @@
+TODO on next refactor (after UC6)
+
+javadoc
+optimalisatie
+constructors (gebruik setters)
+gebiedskaart Shuffle vervangen door zelgeschreven shufflealgoritme
+locatie kleuren enum
+algoritmen in andere threads?
+gebiedskaart default values

@@ -1,0 +1,23 @@
+
+import domein.Domeincontroller;
+import gui.ConsoleApplicatie;
+
+/**
+ * Startklasse van de consoleapplicatie.
+ *
+ * @author Frederic Everaert
+ * @author Gilles Baert
+ * @author Jonas De Bruycker
+ * @author Sander De Quick
+ */
+public class StartUp {
+
+    /**
+     *
+     * @param args Array van strings met eventuele argumenten.
+     */
+    public static void main(String[] args) {
+        Domeincontroller dc = new Domeincontroller();
+        new ConsoleApplicatie(dc);
+    }
+}

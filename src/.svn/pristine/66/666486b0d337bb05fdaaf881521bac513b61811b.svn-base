@@ -1,0 +1,527 @@
+package domain;
+
+import java.sql.SQLException;
+import java.util.List;
+import javax.swing.event.ChangeListener;
+import persistence.PersistenceController;
+
+/**
+ * DomainController of Targui. Gives access to the game model and player
+ * repository.
+ *
+ * @author Frederic Everaert
+ * @author Gilles Baert
+ * @author Jonas De Bruycker
+ * @author Sander De Quick
+ */
+public class DomainController {
+
+    private final PlayerRepository PLAYERREPO = new PlayerRepository();
+    private final Game game = new Game();
+
+    /**
+     * Adds a ChangeListener to the PlayerRepository, which will be notified any
+     * time a value stored in the repository changes.
+     *
+     * @param l
+     */
+    public void addRepoChangeListener(ChangeListener l) {
+        PLAYERREPO.addChangeListener(l);
+    }
+
+    /**
+     * Removes a ChangeListener in PlayerRepository.
+     *
+     * @param l
+     */
+    public void removeRepoChangeListener(ChangeListener l) {
+        PLAYERREPO.removeChangeListener(l);
+    }
+
+    /**
+     * Adds a ChangeListener to the Game, which will be notified any time a
+     * value stored in the game changes.
+     *
+     * @param l
+     */
+    public void addGameChangeListener(ChangeListener l) {
+        game.addChangeListener(l);
+    }
+
+    /**
+     * Removes a ChangeListener in Game.
+     *
+     * @param l
+     */
+    public void removeGameChangeListener(ChangeListener l) {
+        game.removeChangeListener(l);
+    }
+
+    /**
+     * Adds a player to the PlayerRepository.
+     *
+     * @param name
+     * @param color
+     * @param sector
+     */
+    public void addPlayer(String name, String color, int sector) {
+        PLAYERREPO.addPlayer(name, color, sector);
+    }
+
+    /**
+     * Changes a player's name.
+     *
+     * @param oldName
+     * @param newName
+     */
+    public void setPlayerName(String oldName, String newName) {
+        PLAYERREPO.setPlayerName(oldName, newName);
+    }
+
+    /**
+     * Sets a player's color.
+     *
+     * @param name
+     * @param color
+     * @throws IllegalArgumentException
+     */
+    public void setPlayerColor(String name, String color) throws IllegalArgumentException {
+        if (!Color.contains(color.toUpperCase())) {
+            throw new IllegalArgumentException("exp.unsupportedColor");
+        }
+        Color c = Color.valueOf(color.toUpperCase());
+        PLAYERREPO.setPlayerColor(name, c);
+    }
+
+    /**
+     * Sets a player's sector.
+     *
+     * @param name
+     * @param sector
+     */
+    public void setPlayerSector(String name, int sector) {
+        PLAYERREPO.setPlayerSector(name, sector);
+    }
+
+    /**
+     * Sets a player's amount of silver.
+     *
+     * @param name
+     * @param silver
+     */
+    public void setPlayerSilver(String name, int silver) {
+        PLAYERREPO.setPlayerSilver(name, silver);
+    }
+
+    /**
+     * Returns a 3D array of strings representing the current layout of the
+     * board.
+     *
+     * @return
+     */
+    public String[][][] getBoard() {
+        if (game.getBoard() == null) {
+            throw new NullPointerException("exp.boardNotInitialized");
+        }
+        String[][][] res = new String[Board.DIM][Board.DIM][7];
+        Square[][] squares = game.getBoard().getSquares();
+        for (int i = 0; i < squares.length; i++) {
+            for (int j = 0; j < squares[i].length; j++) {
+                boolean hasRegion = false;
+                try {
+                    res[i][j][0] = squares[i][j].getRegion().name();
+                    hasRegion = true;
+                } catch (NullPointerException exp) {
+                    res[i][j][0] = Integer.toString(squares[i][j].getSector());
+                }
+                if (hasRegion) {
+                    res[i][j][1] = Integer.toString(squares[i][j].getRegion().getCurrentEconValue());
+                    res[i][j][2] = Integer.toString(squares[i][j].getRegion().getCurrentStratValue());
+                    res[i][j][3] = Integer.toString(squares[i][j].getSector());
+                    res[i][j][6] = Integer.toString(squares[i][j].getCamels());
+                    try {
+                        res[i][j][4] = squares[i][j].getPlayer().getName();
+                        res[i][j][5] = squares[i][j].getPlayer().getColor().name();
+                    } catch (NullPointerException e) {
+                        res[i][j][4] = "";
+                        res[i][j][5] = "";
+                    }
+                }
+            }
+        }
+
+        return res;
+    }
+
+    /**
+     * Return a 2D array of all players and their attributes.
+     *
+     * @return
+     */
+    public String[][] getPlayers() {
+        Player[] allPlayers = PLAYERREPO.getPlayers();
+        String[][] p = new String[allPlayers.length][Player.NUM_OF_ATTR];
+        for (int i = 0; i < allPlayers.length; i++) {
+            if (allPlayers[i] != null) {
+                p[i][0] = allPlayers[i].getName();
+                try {
+                    p[i][1] = allPlayers[i].getColor().name();
+                } catch (NullPointerException e) {
+                    p[i][1] = "";
+                }
+                p[i][2] = Integer.toString(allPlayers[i].getSector());
+                p[i][3] = Integer.toString(allPlayers[i].getSilver());
+            }
+        }
+        return p;
+    }
+    
+    public int getSilver(String player) {
+        return PLAYERREPO.getPlayer(player).getSilver();
+    }
+
+    /**
+     * Return a list of supported colors.
+     *
+     * @return
+     */
+    public String[] getColors() {
+        return Color.getColors();
+    }
+
+    /**
+     * Start a new game with a given set of players.
+     *
+     * @param players
+     * @throws IllegalArgumentException
+     */
+    public void addPlayersToGame(String[] players) throws IllegalArgumentException {
+        Player[] p = new Player[Game.MAX_PLAYERS];
+        for (String participant : players) {
+            if (PLAYERREPO.containsPlayer(participant)) {
+                game.addPlayer(PLAYERREPO.getPlayer(participant));
+            } else {
+                throw new IllegalArgumentException("exp.invalidName");
+            }
+        }
+    }
+
+    /**
+     * Adds players to the game.
+     */
+    public void addPlayersToGame() {
+        Player[] players = PLAYERREPO.getPlayers();
+        for (Player p : players) {
+            game.addPlayer(p);
+        }
+    }
+
+    /**
+     * Clears the Player repository.
+     */
+    public void clearPlayerRepository() {
+        PLAYERREPO.clear();
+    }
+
+    /**
+     * Clears the game.
+     */
+    public void clearGame() {
+        game.clear();
+    }
+
+    /**
+     * Save the game.
+     *
+     * @param gameName
+     * @throws java.sql.SQLException
+     */
+    public void saveGame(String gameName) throws SQLException {
+        PersistenceController pc = PersistenceController.getInstance();
+        pc.saveGame(gameName, getCurrentRoundNumber(), getBoard(), getPlayers(), getFortuneIdentifiers());
+    }
+
+    public List<String> getSavedGameNames() throws SQLException {
+        PersistenceController pc = PersistenceController.getInstance();
+        return pc.getSavedGameNames();
+    }
+    
+    /**
+     * Load the game.
+     *
+     * @param gameName
+     * @throws java.sql.SQLException
+     */
+    public void loadGame(String gameName) throws SQLException {
+        PersistenceController pc = PersistenceController.getInstance();
+        String[][][] loadedGame = pc.getSavedGame(gameName);
+        PLAYERREPO.clear();
+        game.setBoardFilled(false);
+        game.clear();
+        for (int i = 0; i < 4; i++) {
+            PLAYERREPO.addPlayer(loadedGame[2][i][2], loadedGame[2][i][3], Integer.parseInt(loadedGame[2][i][4]));
+            PLAYERREPO.setPlayerSilver(loadedGame[2][i][2], Integer.parseInt(loadedGame[2][i][5]));
+        }
+        addPlayersToGame();
+        for (String[] item : loadedGame[1]) {
+            game.populateSquare(Integer.parseInt(item[2]), Integer.parseInt(item[3]), item[4], Integer.parseInt(item[5]), (item[6] == null) ? null : PLAYERREPO.getPlayer(item[6]), Integer.parseInt(item[7])); //sector
+        }
+        game.setBoardFilled(true);
+        game.setNumberOfRounds(loadedGame[3].length);
+        game.setCurrentRoundNumber(Integer.parseInt(loadedGame[0][0][2]));
+        for (int i = 0; i < loadedGame[3].length; i++) {
+            game.setFortune(i, Integer.parseInt(loadedGame[3][i][2]));
+        }
+    }
+
+    /**
+     * Returns true if the board is properly initiated.
+     *
+     * @return
+     */
+    public boolean isBoardFilled() {
+        return game.isBoardFilled();
+    }
+
+    /**
+     * Used to flag whether the board is properly initiated.
+     *
+     * @param flag
+     */
+    public void setBoardFilled(boolean flag) {
+        game.setBoardFilled(flag);
+    }
+
+    /**
+     * Populate the board.
+     *
+     * @param ms
+     * @throws InterruptedException
+     */
+    public void populateBoard(int ms) throws InterruptedException {
+        game.populateBoard(ms);
+    }
+
+    /**
+     * Indicate the amount of rounds to be played.
+     *
+     * @param numberOfRounds
+     */
+    public void setupRounds(int numberOfRounds) {
+        game.setupRounds(numberOfRounds);
+    }
+
+    /**
+     * Places the settlement of a player on the indicated square.
+     *
+     * @param player
+     * @param x
+     * @param y
+     */
+    public void placeSettlement(String player, int x, int y) {
+        Player p = PLAYERREPO.getPlayer(player);
+        game.placeSettlement(p, x, y);
+    }
+
+    /**
+     * Returns all shuffled fortune card identifiers. To be called after the
+     * user set the number of rounds.
+     *
+     * @return
+     */
+    public int[] getFortuneIdentifiers() {
+        Fortune[] fortunes = game.getFortunes();
+        int[] fortuneIdentifiers = new int[fortunes.length];
+        for (int i = 0; i < fortunes.length; i++) {
+            fortuneIdentifiers[i] = fortunes[i].getIdentifier();
+        }
+        return fortuneIdentifiers;
+    }
+
+    /**
+     * Returns the number of rounds.
+     *
+     * @return
+     */
+    public int getNumberOfRounds() {
+        return game.getNumberOfRounds();
+    }
+
+    /**
+     * Returns the current round number.
+     *
+     * @return
+     */
+    public int getCurrentRoundNumber() {
+        return game.getCurrentRoundNumber();
+    }
+
+    /**
+     * Returns the current turn number.
+     *
+     * @return
+     */
+    public int getCurrentTurnNumber() {
+        return game.getCurrentTurnNumber();
+    }
+
+    /**
+     * Return the number of turns for this round.
+     *
+     * @return
+     */
+    public int getNumberOfTurns() {
+        return game.getNumberOfTurns();
+    }
+
+    /**
+     * Returns a new turn.
+     *
+     * @return
+     */
+    public String[] getNextTurn() {
+        return game.getNextTurn();
+    }
+
+    /**
+     * Returns all region types.
+     *
+     * @return
+     */
+    public String[] getRegions() {
+        return Region.getRegions();
+    }
+
+    /**
+     * Returns sectors.
+     *
+     * @return
+     */
+    public int[][] getSectors() {
+        return Board.getSectors();
+    }
+
+    /**
+     * Initiates an attack. It is the responsability of the client to make sure
+     * that the attack is legal. Use the getAdjacentSquares method of this class
+     * to indicate which squares a player is allowed to attack.
+     *
+     * @param xFrom
+     * @param yFrom
+     * @param xTo
+     * @param yTo
+     */
+    public void initiateAttack(int xFrom, int yFrom, int xTo, int yTo) {
+        game.initiateAttack(xFrom, yFrom, xTo, yTo);
+    }
+
+    /**
+     * Executes one subround of an attack.
+     *
+     * battleStatus[0]: status of attack: 0 = attacking player won, 1 =
+     * defending player held, 2 = both areas still have camels. battleStatus[1]:
+     * Diceroll by attacking player. battleStatus[2]: Number of killed camels on
+     * attacking square. battleStatus[3]: Diceroll by defending player.
+     * battleStatus[4]: Number of killed camels on safe square.
+     *
+     * @return
+     */
+    public int[] attack() {
+        return game.attack();
+    }
+
+    /**
+     * Moves an amount of camels after the battle is won. Must be called after a
+     * battle is won by the player in order to move camels to the newly
+     * conquered square.
+     *
+     * @param numberOfCamels
+     */
+    public void moveCamelsAfterWonBattle(int numberOfCamels) {
+        game.moveCamelsAfterWonBattle(numberOfCamels);
+    }
+
+    /**
+     * Moves a set amount of camels from one square to an adjacent one. It is
+     * the responsability of the client to make sure that the move is legal. Use
+     * the getAdjacentSquares method of this class to indicate where a player is
+     * allowed to move to.
+     *
+     * @param xFrom
+     * @param yFrom
+     * @param xTo
+     * @param yTo
+     * @param numberOfCamels
+     */
+    public void move(int xFrom, int yFrom, int xTo, int yTo, int numberOfCamels) {
+        game.move(xFrom, yFrom, xTo, yTo, numberOfCamels);
+    }
+
+    /**
+     * Purchase an amount of camels and places them on a specific square. It is
+     * the responsability of the client to make sure that the square indicated
+     * is effectively owned by the player making the purchase.
+     *
+     * @param x
+     * @param y
+     * @param numberOfCamels
+     */
+    public void purchaseCamels(int x, int y, int numberOfCamels) {
+        game.purchaseCamels(x, y, numberOfCamels);
+    }
+
+    /**
+     * Returns the adjacent squares of an indicated square. Used to return a
+     * list of squares (by coordinates) to indicate where a player can move to.
+     *
+     * @param x
+     * @param y
+     * @return
+     */
+    public int[][] getAdjacentSquares(int x, int y) {
+        List<int[]> list = game.getAdjacentSquares(x, y);
+        int[][] sq = new int[list.size()][2];
+        for (int i = 0; i < list.size(); i++) {
+            sq[i][0] = list.get(i)[0];
+            sq[i][1] = list.get(i)[1];
+        }
+        return sq;
+    }
+
+    /**
+     * Returns the name(s) of the victor(s). Returns an empty list if there is
+     * no winner yet.
+     *
+     * @return
+     */
+    public List<String> getVictors() {
+        return game.getVictors();
+    }
+
+    /**
+     * Evaluate the score of the current round. To be called after a round.
+     *
+     * @return
+     */
+    public int[] evaluateRound() {
+        return game.evaluateRound();
+    }
+
+    /**
+     * Used to set whether a game state has been loaded.
+     *
+     * @param flag
+     */
+    public void setGameLoaded(boolean flag) {
+        game.setGameLoaded(flag);
+    }
+
+    /**
+     * Returns true if a game state has been loaded.
+     *
+     * @return
+     */
+    public boolean isGameLoaded() {
+        return game.isGameLoaded();
+    }
+}

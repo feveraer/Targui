@@ -1,0 +1,44 @@
+package domein;
+
+/**
+ * Contains possible colors for each player.
+ *
+ * @author Frederic Everaert
+ * @author Gilles Baert
+ * @author Jonas De Bruycker
+ * @author Sander De Quick
+ */
+enum Color {
+
+    BLACK,
+    BLUE,
+    CYAN,
+    DARK_GRAY,
+    GRAY,
+    GREEN,
+    LIGHT_GREY,
+    MAGENTA,
+    ORANGE,
+    PINK,
+    RED,
+    WHITE,
+    YELLOW;
+
+    public static boolean contains(String str) {
+        for (Color k : Color.values()) {
+            if (k.name().equals(str.toUpperCase())) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    public static String[] getColors() {
+        Color[] c = values();
+        String[] str = new String[c.length];
+        for(int i = 0; i < c.length; i++) {
+            str[i] = c[i].name();
+        }
+        return str;
+    }
+}

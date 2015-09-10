@@ -1,0 +1,260 @@
+package domain;
+
+/**
+ * Repository holding all players.
+ *
+ * @author Frederic Everaert
+ * @author Gilles Baert
+ * @author Jonas De Bruycker
+ * @author Sander De Quick
+ */
+class PlayerRepository extends Model {
+
+    private Player[] players = new Player[Game.MAX_PLAYERS];
+
+    /**
+     * Adds a player to the repository.
+     *
+     * @param name
+     * @param colorString
+     * @param sector
+     * @throws IllegalArgumentException
+     */
+    public void addPlayer(String name, String colorString, int sector) throws IllegalArgumentException {
+        // Check if the color given is supported.
+        boolean supportedColor = false;
+        Color color = null;
+        if (Color.contains(colorString.toUpperCase())) {
+            supportedColor = true;
+            color = Color.valueOf(colorString.toUpperCase());
+        }
+        if (!supportedColor) {
+            throw new IllegalArgumentException("exp.unsupportedColor");
+        }
+        // Check maximum number of players.
+        if (players[Game.MAX_PLAYERS - 1] != null) {
+            throw new UnsupportedOperationException("exp.maxPlayers");
+        }
+        for (Player p : players) {
+            // Check if the name is unique.
+            if (p != null && p.getName().equals(name)) {
+                throw new IllegalArgumentException("exp.uniqueName");
+            }
+            // Check if the color is unique.
+            if (p != null && p.getColor().name().equalsIgnoreCase(colorString)) {
+                throw new IllegalArgumentException("exp.uniqueColor");
+            }
+            // Check if the sector is unique.
+            if (p != null && p.getSector() == sector) {
+                throw new IllegalArgumentException("exp.uniqueSector");
+            }
+        }
+        // Add player if conditions above are met.
+        for (int i = 0; i < Game.MAX_PLAYERS; i++) {
+            if (players[i] == null) {
+                players[i] = new Player(name, color, sector, this);
+                players[i].setSilver(10);
+                fireStateChanged();
+                break;
+            }
+        }
+    }
+
+    /**
+     * Empties the repository.
+     */
+    public void clear() {
+        players = new Player[Game.MAX_PLAYERS];
+    }
+
+    /**
+     * Changes a player's name.
+     *
+     * @param oldName
+     * @param newName
+     * @throws IllegalArgumentException
+     */
+    public void setPlayerName(String oldName, String newName) throws IllegalArgumentException {
+        if (oldName == null || oldName.isEmpty()) {
+            throw new NullPointerException("exp.existingName");
+        }
+        if (oldName.equals(newName)) {
+            throw new IllegalArgumentException("exp.differentName");
+        }
+        if (!containsPlayer(oldName)) {
+            throw new IllegalArgumentException("exp.nameNotFound" + oldName);
+        }
+        if (containsPlayer(newName)) {
+            throw new IllegalArgumentException("exp.nameNotFound" + newName);
+        }
+        for (Player p : players) {
+            if (p.getName().equals(oldName)) {
+                p.setName(newName);
+                fireStateChanged();
+                return;
+            }
+        }
+    }
+
+    /**
+     * Sets a player's color.
+     *
+     * @param name
+     * @param color
+     * @throws IllegalArgumentException
+     */
+    public void setPlayerColor(String name, Color color) throws IllegalArgumentException {
+        if (name == null || name.isEmpty()) {
+            throw new NullPointerException("exp.choosePlayer");
+        }
+        if (!containsPlayer(name)) {
+            throw new IllegalArgumentException("exp.nameNotFound" + name);
+        }
+        if (containsColor(color.name())) {
+            throw new IllegalArgumentException("exp.colorInUse" + color.name().toLowerCase());
+        }
+
+        for (Player p : players) {
+            if (p.getName().equals(name)) {
+                p.setColor(color);
+                fireStateChanged();
+                return;
+            }
+        }
+    }
+
+    /**
+     * Sets a player's sector.
+     *
+     * @param name
+     * @param sector
+     * @throws IllegalArgumentException
+     */
+    public void setPlayerSector(String name, int sector) throws IllegalArgumentException {
+        if (!containsPlayer(name)) {
+            throw new IllegalArgumentException("exp.nameNotFound" + name);
+        }
+        if (containsSector(sector)) {
+            throw new IllegalArgumentException("exp.sectorInUse" + sector);
+        }
+        for (Player p : players) {
+            if (p.getName().equals(name)) {
+                if (p.getSector() == sector) {
+                    return;
+                }
+                p.setSector(sector);
+                fireStateChanged();
+                return;
+            }
+        }
+        throw new IllegalArgumentException("exp.nameNotFound" + name);
+    }
+
+    /**
+     * Sets a player's amount of silver.
+     *
+     * @param name
+     * @param silver
+     * @throws IllegalArgumentException
+     */
+    public void setPlayerSilver(String name, int silver) throws IllegalArgumentException {
+        if (!containsPlayer(name)) {
+            throw new IllegalArgumentException("exp.nameNotFound" + name);
+        }
+        for (Player p : players) {
+            if (p.getName().equals(name)) {
+                if (p.getSilver() == silver) {
+                    return;
+                }
+                p.setSilver(silver);
+                fireStateChanged();
+                return;
+            }
+        }
+    }
+
+    /**
+     * Checks if the sgiven name is already in use by a player.
+     *
+     * @param name
+     * @return
+     */
+    public boolean containsPlayer(String name) {
+        for (Player p : players) {
+            if (p.getName().equals(name)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Check if the given color is already in use by a player.
+     *
+     * @param color
+     * @return
+     */
+    public boolean containsColor(String color) {
+        boolean res = false;
+        for (Player p : players) {
+            if (p.getColor().name().equalsIgnoreCase(color)) {
+                res = true;
+            }
+        }
+        return res;
+    }
+
+    /**
+     * Check if the given sector is already in use by a player.
+     *
+     * @param sector
+     * @return
+     */
+    public boolean containsSector(int sector) {
+        boolean res = false;
+        for (Player p : players) {
+            if (p.getSector() == sector) {
+                res = true;
+            }
+        }
+        return res;
+    }
+
+    /**
+     * Returns a player by his name.
+     *
+     * @param name
+     * @return
+     */
+    public Player getPlayer(String name) {
+        for (Player p : players) {
+            if (p.getName().equals(name)) {
+                return p;
+            }
+        }
+        throw new IllegalArgumentException("exp.nameNotFound" + name);
+    }
+
+    /**
+     * Returns all players.
+     *
+     * @return
+     */
+    public Player[] getPlayers() {
+        return players;
+    }
+
+    /**
+     * Returns all player names.
+     *
+     * @return
+     */
+    public String[] getPlayerNames() {
+        String[] names = new String[Game.MAX_PLAYERS];
+        for (int i = 0; i < players.length; i++) {
+            names[i] = players[i].getName();
+        }
+        return names;
+    }
+
+}

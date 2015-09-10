@@ -1,0 +1,20 @@
+- winnaar direct tonen na het plaatsen van laatste zet
+
+- aanval: een gewenst aantal kamelen laten overzetten ipv nu allemaal (werking ok)
+- check voor goede methodestructuur voor aanval
+- gui niet te veel verantwoordelijkheid?
+- om econ of strat waarde van vak te kennen, moet je eraan raken via regionValuesOfRound die x en y verwacht, vak kent zijn x en y niet
+
+- optie om kamelen te kunnen kopen niet geven als speler geen geldstukken meer heeft
+- wat bij gelijkspel? tonen van meerdere winnaars
+- cancel mogelijkheden, niet gewoon 'play' knop
+
+- gui:
+    - fixen van layout (voorlopig met groupLayout)
+    - nieuwe speler: lijst van mogelijke kleuren, lijst van mogelijke sectoren
+    - custom disabledIcons
+    - gamelog die weergeeft wat er gebeurt ipv joptionpane popups
+
+- voorzien van saveGame en loadGame in domein
+
+- applicatie in 3 talen

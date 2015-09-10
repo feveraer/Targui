@@ -1,0 +1,30 @@
+package gui;
+
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
+
+/**
+ *
+ * @author Frederic
+ */
+public class LookAndFeel {
+    
+    public static void setSystemLookAndFeel() {
+        try {
+            UIManager.setLookAndFeel(
+                    UIManager.getSystemLookAndFeelClassName());
+        } catch (UnsupportedLookAndFeelException | ClassNotFoundException | InstantiationException | IllegalAccessException e) {
+            // handle exception
+        }
+    }
+    
+    public static void setJavaLookAndFeel() {
+        try {
+            // Set cross-platform Java L&F (also called "Metal")
+            UIManager.setLookAndFeel(
+                    UIManager.getCrossPlatformLookAndFeelClassName());
+        } catch (UnsupportedLookAndFeelException | ClassNotFoundException | InstantiationException | IllegalAccessException e) {
+            // handle exception
+        }
+    }
+}

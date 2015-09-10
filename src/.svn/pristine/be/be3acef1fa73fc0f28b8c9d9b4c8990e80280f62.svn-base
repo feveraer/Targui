@@ -1,0 +1,78 @@
+package domein;
+
+/**
+ * Representeert één speler.
+ * 
+ * @author Frederic Everaert
+ * @author Gilles Baert
+ * @author Jonas De Bruycker
+ * @author Sander De Quick
+ */
+public class Speler {
+
+    /**
+     * Aantal relevante attributen van een speler; naam, kleur, sector,
+     * geldstukken.
+     */
+    public static final int NUM_OF_ATTR = 4;
+
+    private final String naam;
+    private final String kleur;
+    private final Sector sector;
+
+     /**
+     * Aantal geldstukken die een speler meekrijgt bij aanmaak.
+     */
+    private int geldstukken = 0;
+
+    /**
+     *
+     * @param naam spelernaam, geen nullstring
+     * @param kleur kleur van speler @see Spel
+     * @param sector gewenste sector @see Sector
+     */
+    public Speler(String naam, String kleur, Sector sector) {
+        if(naam == null || naam.isEmpty()) {
+            throw new IllegalArgumentException("Gelieve een geldige naam op te geven.");
+        }
+        this.naam = naam;
+        this.kleur = kleur;
+        this.sector = sector;
+    }
+
+    /**
+     * @return the naam
+     */
+    public String getNaam() {
+        return naam;
+    }
+
+    /**
+     * @return the sector
+     */
+    public Sector getSector() {
+        return sector;
+    }
+
+    /**
+     * @return the kleur
+     */
+    public String getKleur() {
+        return kleur;
+    }
+
+    /**
+     * @return the geldstukken
+     */
+    public int getGeldstukken() {
+        return geldstukken;
+    }
+
+    /**
+     * @param geldstukken the geldstukken to set
+     */
+    public void setGeldstukken(int geldstukken) {
+        this.geldstukken = geldstukken;
+    }
+
+}

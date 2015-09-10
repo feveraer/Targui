@@ -1,0 +1,72 @@
+package domain;
+
+/**
+ * Respresents the different region types along with their attributes.
+ *
+ * @author Frederic Everaert
+ * @author Gilles Baert
+ * @author Jonas De Bruycker
+ * @author Sander De Quick
+ */
+enum Region {
+
+    SALTMINE(5, 5),
+    SETTLEMENT(4, 4),
+    GUELTA(3, 3),
+    ERG(1, 0),
+    MOUNTAIN(0, 1),
+    RAG(2, 0),
+    FESHFESH(0, 2),
+    SALTLAKE(0, 0);
+
+    private final int ECON_VALUE;
+    private final int STRAT_VALUE;
+    private int currentEconValue;
+    private int currentStratValue;
+
+    Region(int econValue, int stratValue) {
+        this.ECON_VALUE = econValue;
+        this.STRAT_VALUE = stratValue;
+        setCurrentEconValue(econValue);
+        setCurrentStratValue(stratValue);
+    }
+
+    public static boolean contains(String str) {
+        for (Region k : Region.values()) {
+            if (k.name().equals(str.toUpperCase())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static String[] getRegions() {
+        Region[] r = values();
+        String[] str = new String[r.length];
+        for (int i = 0; i < r.length; i++) {
+            str[i] = r[i].name();
+        }
+        return str;
+    }
+
+    public int getCurrentEconValue() {
+        return currentEconValue;
+    }
+
+    public int getCurrentStratValue() {
+        return currentStratValue;
+    }
+    
+    public void setCurrentEconValue(int econValue) {
+        currentEconValue = econValue;
+    }
+
+    public void setCurrentStratValue(int stratValue) {
+        currentStratValue = stratValue;
+    }
+    
+    public void resetCurrentValues() {
+        currentEconValue = ECON_VALUE;
+        currentStratValue = STRAT_VALUE;
+    }
+}

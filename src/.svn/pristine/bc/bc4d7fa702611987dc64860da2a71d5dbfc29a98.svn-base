@@ -1,0 +1,92 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package persistence;
+
+import domain.DomainController;
+
+/**
+ *
+ * @author Sander
+ */
+public class Persistencecontroller {
+
+    private GameMapper gameMapper = new GameMapper();
+    private SquareMapper squareMapper = new SquareMapper();
+    private PlayerMapper playerMapper = new PlayerMapper();
+    private RoundMapper roundMapper = new RoundMapper();
+    private static Persistencecontroller persistentieController;
+    private DomainController dc = new DomainController();
+
+    public static Persistencecontroller getInstance() {
+        if (persistentieController == null) {
+            persistentieController = new Persistencecontroller();
+        }
+        return persistentieController;
+    }
+
+    /**
+     *
+     * @param game
+     * @param gameNaam
+     */
+    public void saveGame(String gameName) {
+        String[] gameConf;
+        String[][] squareConf = new String[49][7];
+        String[][] playerConf;
+        String[][] roundConf;
+        String[][][] game = null;
+
+        //GAME ID!!
+        game[0][0][0] = Integer.toString(dc.getNumberOfRounds());
+        game[0][0][1] = Integer.toString(dc.getCurrentRound());
+        game[0][0][2] = null;
+        game[0][0][3] = gameName;
+
+        int i = 0;
+        for (int x = 0; x < 7; x++) {
+            for (int y = 0; y < 7; y++) {
+                //volgorde 00-01-02...
+                game[1][i] = dc.getBoard()[x][y];
+                i++;
+            }
+        }
+
+        game[2] = dc.getPlayers();
+
+        for (int fortune : dc.getFortuneIdentifiers()) {
+            game[3][i][0] = null;
+            game[3][i][1] = Integer.toString(i);
+            game[3][i][2] = Integer.toString(fortune);
+            game[3][i][3] = null;
+            i++;
+        }
+        gameConf = game[0][0];
+        squareConf = game[1];
+        playerConf = game[2];
+        roundConf = game[3];
+        gameMapper.saveGame(gameConf, gameName);
+        squareMapper.saveSquares(squareConf);
+        playerMapper.savePlayers(playerConf);
+        roundMapper.saveRounds(roundConf);
+
+    }
+
+    /**
+     *
+     * @param gameNaam
+     * @return
+     */
+    public String[][][] getSavedGame(String gameNaam) {
+        int gameId = Integer.parseInt(gameMapper.getGame(gameNaam)[0]);
+        String[][][] savedGame = new String[4][47][8];
+        savedGame[0][0] = gameMapper.getGame(gameNaam);
+        savedGame[1] = squareMapper.getSquares(gameId);
+        savedGame[2] = playerMapper.getPlayers(gameId);
+        savedGame[3] = roundMapper.getRounds(gameId);
+        return savedGame;
+    }
+
+}

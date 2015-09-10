@@ -1,0 +1,24 @@
+//gebieden van speler i
+                                        boardUpdate = dc.getBoard();
+        
+                        for(int j = 0; j<boardUpdate.length; j++)
+                        {
+                            for(int k = 0; k < boardUpdate[k].length; k++)
+                            {
+                                    if(boardUpdate[j][k][4].equals(turn))
+                                    {
+                                        System.out.printf("[%10s %2d %2s %2s %2s %5s %2s]",
+                                        boardUpdate[j][k][0],
+                                        Integer.parseInt(boardUpdate[j][k][1]) + 1,
+                                        boardUpdate[j][k][2],
+                                        boardUpdate[j][k][3],
+                                        boardUpdate[j][k][4],
+                                        boardUpdate[j][k][5],
+                                        boardUpdate[j][k][6]);
+                    
+                                        System.out.print("  ");
+                                    }
+                            }
+                            System.out.print("\n");
+                        }
+                      

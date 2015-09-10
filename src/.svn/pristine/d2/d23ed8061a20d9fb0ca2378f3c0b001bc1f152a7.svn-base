@@ -1,0 +1,116 @@
+package domein;
+
+/**
+ * Represents one complete game.
+ *
+ * @author Frederic Everaert
+ * @author Gilles Baert
+ * @author Jonas De Bruycker
+ * @author Sander De Quick
+ */
+public class Game extends Model {
+
+    public static final int MAX_PLAYERS = 4;
+    private final Board board = new Board();
+    private final Player[] players;
+
+    private Round ronde;
+    private final int MAX_AANTAL_RONDEN = 16;
+    private int aantalRonden;
+    private int huidigeRonde = 0;
+
+    private Destiny kaart;
+
+    public Game(Player[] players, String[] colors, int numberOfRounds) {
+        
+    }
+
+    /**
+     * Configuratie van het board.
+     */
+    public void vulSpelbord() {
+        board.vulSpelbord();
+        spelbordGevuld = true;
+    }
+
+    /**
+     * Plaatst een gebiedskaart van het type nederzetting op een specifiek vak.
+     *
+     * @param speler Playerobject
+     * @param vakX X-coördinaat van het gewenste vak
+     * @param vakY Y-coördinaat van het gewenste vak
+     */
+    public void plaatsNederzetting(Player speler, int vakX, int vakY) {
+        board.plaatsNederzetting(speler, vakX, vakY);
+    }
+
+    /**
+     * Legt het aantal ronden vast.
+     *
+     * @param aantalRonden
+     */
+    public void kiesAantalRonden(int aantalRonden) {
+        if (aantalRonden < 0 || aantalRonden > MAX_AANTAL_RONDEN) {
+            throw new IllegalArgumentException("Gelieve een geldig aantal ronden op te geven");
+        } else {
+            this.aantalRonden = aantalRonden;
+            kaart = new Destiny(this, aantalRonden);
+        }
+    }
+
+    /**
+     *
+     */
+    public void speelRonde() {
+        ronde = new Round(players, kaart.getGeschud()[huidigeRonde]);
+        huidigeRonde += 1;
+        for (Turn beurten : ronde.getBeurten()) {
+
+        }
+    }
+
+    /**
+     *
+     * @return
+     */
+    public Round getRonde() {
+        return ronde;
+    }
+
+    /**
+     *
+     * @return 2D array representatie van het board
+     */
+    public Board getBoard() {
+        return board;
+    }
+
+    /**
+     *
+     * @return is het board al opgevuld of niet
+     */
+    public boolean isSpelbordGevuld() {
+        return spelbordGevuld;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public String geefEindresultaatRonde() {
+        return ronde.toString();
+    }
+
+    /**
+     *
+     * @return
+     */
+    public Player[] getSpelers() {
+        return players;
+    }
+
+    public void cleanup() {
+
+    }
+
+}

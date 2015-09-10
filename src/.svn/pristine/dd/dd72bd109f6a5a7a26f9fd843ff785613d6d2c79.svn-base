@@ -1,0 +1,99 @@
+package domein;
+
+public class Domeincontroller {
+
+    private final SpelerRepository repo = new SpelerRepository();
+    private Spel spel;
+
+    public void startNieuwSpel() {
+        spel = new Spel();
+    }
+
+    public String[] geefKleuren() {
+        return repo.getMogKleuren();
+    }
+
+    public int[][] geefSectoren() {
+        int[][] sectoren = spel.getSpelbord().getSectoren();
+        return sectoren;
+    }
+
+    public String[][][] geefSpel() {
+        Vak[][] spelbord = spel.geefSpel();
+        String[][][] res = new String[7][7][4];
+        for (int i = 0; i < res.length; i++) {
+            for (int j = 0; j < res[i].length; j++) {
+                res[i][j][0] = spelbord[i][j].getGebied().toString();
+                if (spelbord[i][j].getSector() == null) {
+                    res[i][j][1] = "geen sector";
+                } else {
+                    res[i][j][1] = Integer.toString(spelbord[i][j].getSector().getSectorNr());
+                }
+                res[i][j][2] = spelbord[i][j].getMarkeringsteken();
+                res[i][j][3] = Integer.toString(spelbord[i][j].getAantalKamelen());
+            }
+        }
+        return res;
+    }
+
+    public String[][] geefSpelers() {
+        String[][] sp = new String[SpelerRepository.MAX_PLAYERS][Speler.NUM_OF_ATTR];
+        Speler[] spelers = repo.geefSpelers();
+        for (int i = 0; i < SpelerRepository.MAX_PLAYERS; i++) {
+            sp[i][0] = spelers[i].getNaam();
+            sp[i][1] = spelers[i].getKleur();
+            sp[i][2] = Integer.toString(spelers[i].getSector().getSectorNr());
+            sp[i][3] = Integer.toString(spelers[i].getGeldstukken());
+        }
+        return sp;
+    }
+
+    public String[] geefSpeler(int nr) {
+        String[] gevondenSpeler = new String[Speler.NUM_OF_ATTR];
+        Speler[] alleSpelers = repo.geefSpelers();
+        for (int i = 0; i < SpelerRepository.MAX_PLAYERS;i++) {
+            if (i==nr) {
+                gevondenSpeler[0] = alleSpelers[i].getNaam();
+                gevondenSpeler[1] = alleSpelers[i].getKleur();
+                gevondenSpeler[2] = Integer.toString(alleSpelers[i].getSector().getSectorNr());
+                gevondenSpeler[3] = Integer.toString(alleSpelers[i].getGeldstukken());
+                break;
+            }
+        }
+        if (gevondenSpeler[0] == null) {
+            throw new NullPointerException("Bug in parameter nr in dc.geefSpeler ");
+        } else {
+            return gevondenSpeler;
+        }
+    }
+
+    /**
+     *
+     * @param naam
+     * @param kleur
+     * @param sector
+     */
+    public void maakSpelerAan(String naam, String kleur, int sector) {
+        repo.maakSpelerAan(naam, kleur, sector);
+    }
+
+    public void vulSpelbord() {
+        spel.vulSpelbord();
+    }
+
+    public void plaatsNederzetting(int spelerNr, int vakX, int vakY) {
+        Speler[] alleSpelers = repo.geefSpelers();
+        Speler geselectSpeler = null;
+        for (int i=0;i<SpelerRepository.MAX_PLAYERS;i++) {
+            if (i==spelerNr){
+                geselectSpeler = alleSpelers[i];
+                break;
+            }
+        }
+        if (geselectSpeler == null) {
+            throw new IllegalArgumentException("Insecten en al");
+        }
+        spel.plaatsNederzetting(geselectSpeler, vakX, vakY);
+    }
+
+}

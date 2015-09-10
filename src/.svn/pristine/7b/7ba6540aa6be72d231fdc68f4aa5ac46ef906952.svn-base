@@ -1,0 +1,86 @@
+package gui;
+
+import java.awt.Color;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import javax.swing.JButton;
+
+/**
+ *
+ * @author Frederic
+ */
+public class TarguiButton extends JButton {
+
+    private int camels = 0;
+
+    @Override
+    public void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        paintCamels(g);
+    }
+
+    public void setCamels(int camels) {
+        this.camels = camels;
+        repaint();
+    }
+
+    public void paintCamels(Graphics g) {
+        Graphics2D g2 = (Graphics2D) g;
+        int width = getPreferredSize().width;
+        int height = getPreferredSize().height;
+        int camelsToPaint = camels;
+        //if 250 or more camels, just show the number inside an oval
+        if (camels >= 250) {
+            String txt = Integer.toString(camels);
+            int ovalWidth = 50;
+            int ovalHeight = 30;
+            //draw oval
+            g2.setColor(Color.BLACK);
+            g2.fillOval(width / 2 - ovalWidth / 2, height / 2 - ovalHeight / 2, ovalWidth, ovalHeight);
+            //draw centered text
+            FontMetrics fm = g2.getFontMetrics();
+            double textWidth = fm.getStringBounds(txt, g2).getWidth();
+            g2.setColor(Color.WHITE);
+            g2.drawString(txt, (int) (width / 2 - textWidth / 2),
+                    (int) (height / 2 + fm.getMaxAscent() / 2));
+        } else {
+            int dCamels = 0;
+            while (camelsToPaint >= 50) {
+                camelsToPaint -= 50;
+                dCamels++;
+                g2.setColor(Color.MAGENTA);
+                g2.fillRect(10 + dCamels * 12, 10, 10, 10);
+                g2.setColor(Color.BLACK);
+                g2.drawRect(10 + dCamels * 12, 10, 10, 10);
+            }
+            int xCamels = 0;
+            while (camelsToPaint >= 10) {
+                camelsToPaint -= 10;
+                xCamels++;
+                g2.setColor(Color.RED);
+                g2.fillRect(10 + xCamels * 12, 21, 10, 10);
+                g2.setColor(Color.BLACK);
+                g2.drawRect(10 + xCamels * 12, 21, 10, 10);
+            }
+            int vCamels = 0;
+            while (camelsToPaint >= 5) {
+                camelsToPaint -= 5;
+                vCamels++;
+                g2.setColor(Color.YELLOW);
+                g2.fillRect(10 + vCamels * 12, 32, 10, 10);
+                g2.setColor(Color.BLACK);
+                g2.drawRect(10 + vCamels * 12, 32, 10, 10);
+            }
+            int iCamels = 0;
+            while (camelsToPaint > 0) {
+                camelsToPaint--;
+                iCamels++;
+                g2.setColor(Color.GREEN);
+                g2.fillRect(10 + iCamels * 12, 43, 10, 10);
+                g2.setColor(Color.BLACK);
+                g2.drawRect(10 + iCamels * 12, 43, 10, 10);
+            }
+        }
+    }
+}

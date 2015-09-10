@@ -1,0 +1,147 @@
+package domein;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+
+public class Spelbord {
+
+    public static final int DIM = 7;
+    public static final int NUM_OF_SECTORS = 4;
+    public static final int VAKKEN_PER_SECTOR = 8;
+    public static final int AANTAL_GEBIEDSKAARTEN = 53;
+    private int aantalGeplaatsteNederzettingen=0;
+    private final Vak[][] vakken;
+    private final Sector[] sectors;
+    private final int[][] sectorenSpelbord
+            = {
+                {0, 0, 0, -1, 1, 1, 1},
+                {0, 0, 0, -1, 1, 1, 1},
+                {0, 0, -1, -1, -1, 1, 1},
+                {-1, -1, -1, -1, -1, -1, -1},
+                {2, 2, -1, -1, -1, 3, 3},
+                {2, 2, 2, -1, 3, 3, 3},
+                {2, 2, 2, -1, 3, 3, 3}
+            };
+    private Gebiedskaart[] gebiedskaarten;
+    private List<Gebiedskaart> kaartenGeschud;
+
+    public Spelbord() {
+        sectors = new Sector[NUM_OF_SECTORS];
+        for (int i = 0; i < NUM_OF_SECTORS; i++) {
+            sectors[i] = new Sector();
+        }
+        vakken = new Vak[DIM][DIM];
+        for (int i = 0; i < DIM; i++) {
+            for (int j = 0; j < DIM; j++) {
+                vakken[i][j] = new Vak();
+                vakken[i][j].setSector(sectors[sectorenSpelbord[i][j]]);
+            }
+        }
+        
+        gebiedskaarten = new Gebiedskaart[AANTAL_GEBIEDSKAARTEN];
+        gebiedskaarten[0] = new Zoutwinplaats();
+        for (int i = 1; i < 5; i++) {
+            gebiedskaarten[i] = new Nederzetting();
+        }
+        for (int i = 5; i < 11; i++) {
+            gebiedskaarten[i] = new Guelta();
+        }
+        for (int i = 11; i < 23; i++) {
+            gebiedskaarten[i] = new Erg();
+        }
+        for (int i = 23; i < 29; i++) {
+            gebiedskaarten[i] = new Berg();
+        }
+        for (int i = 29; i < 41; i++) {
+            gebiedskaarten[i] = new Reg();
+        }
+        for (int i = 41; i < 49; i++) {
+            gebiedskaarten[i] = new FecheFeche();
+        }
+        for (int i = 49; i < AANTAL_GEBIEDSKAARTEN; i++) {
+            gebiedskaarten[i] = new Zoutmeer();
+        }
+
+        vulSpelbord();
+    }
+
+    public Vak[][] geefSpelbord() {
+        return vakken;
+    }
+
+    public void vulSpelbord() {
+        kaartenGeschud = new ArrayList<>();
+        //kopiëren van gebiedskaarten, zonder nederzettingen en zoutwinplaats, naar lijst
+        kaartenGeschud = Arrays.asList(
+                Arrays.copyOfRange(gebiedskaarten, 5, AANTAL_GEBIEDSKAARTEN));
+        //lijst kan je snel sorteren
+        Collections.shuffle(kaartenGeschud);
+        
+        String richting = "R";
+        int posX = vakken.length / 2;
+        int posY = vakken.length / 2;
+        boolean eindeBereikt = false;
+
+        
+        vakken[posX][posY].setGebied(gebiedskaarten[0]);
+        int index = 0;
+
+        while (!eindeBereikt) {
+            switch (richting) {
+                case "L":
+                    posY -= 1;
+
+                    vakken[posX][posY].setGebied(kaartenGeschud.get(index));
+                    index++;
+                    if (vakken[posX - 1][posY] == null) { //als element erboven nog null is
+                        richting = "U"; //moeten we naar boven
+                    }
+                    break;
+                case "U":
+                    posX -= 1;
+                    vakken[posX][posY].setGebied(kaartenGeschud.get(index));
+                    index++;
+                    if (vakken[posX][posY + 1] == null) {
+                        richting = "R";
+                    }
+                    break;
+                case "R":
+                    posY += 1;
+                    if (posY >= vakken.length) { 
+                        // stoppen
+                        richting = "";
+                        eindeBereikt = true;
+                        break;
+                    }
+                    vakken[posX][posY].setGebied(kaartenGeschud.get(index));
+                    index++;
+                    if (vakken[posX + 1][posY] == null) {
+                        richting = "D";
+                    }
+                    break;
+                case "D":
+                    posX += 1;
+                    vakken[posX][posY].setGebied(kaartenGeschud.get(index));
+                    index++;
+                    if (vakken[posX][posY - 1] == null) {
+                        richting = "L";
+                    }
+                    break;
+            }
+        }
+    }
+    
+    public int[][] getSectoren() {
+        return sectorenSpelbord;
+    }
+    
+    public void plaatsNederzetting(Speler speler, Vak vak)
+    {
+        
+        vak.plaatsNederzetting(speler, vak, nederzettingen);
+    }
+
+}

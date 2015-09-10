@@ -1,0 +1,17 @@
+
+package gui;
+
+import domein.Domeincontroller;
+
+/**
+ *
+ * @author Frederic
+ */
+public class ConsoleApplicatie {
+    
+    public ConsoleApplicatie(Domeincontroller dc) {
+        dc.startNieuwSpel();
+    }
+    
+    
+}

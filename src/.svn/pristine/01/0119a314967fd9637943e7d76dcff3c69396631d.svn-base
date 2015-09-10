@@ -1,0 +1,20 @@
+- domein:
+    - check voor goede methodestructuur voor aanval
+    - save (persistentie)
+    - load (persistentie)
+    - gelijkspel victory condition
+    - javadoc
+
+- gui:
+    - fixen van layout (voorlopig met groupLayout)
+    - nieuwe speler: lijst van mogelijke kleuren, lijst van mogelijke sectoren (ok)
+        kleuren tonen i.p.v. omschrijving
+    - custom disabledIcons
+    - gamelog die weergeeft wat er gebeurt ipv joptionpane popups
+    - cancel mogelijkheden, niet gewoon 'play' knop
+    - optie om kamelen te kunnen kopen niet geven als speler geen geldstukken meer heeft
+    - 3 talen
+    - kleuren contrast
+    - custom images
+    - presentatie camels op vak
+    - menu bar (game, options, help)

@@ -1,0 +1,158 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package persistence;
+
+import domain.DomainController;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+/**
+ *
+ * @author Sander
+ */
+public class PersistenceController {
+
+    private GameMapper gameMapper = new GameMapper();
+    private SquareMapper squareMapper = new SquareMapper();
+    private PlayerMapper playerMapper = new PlayerMapper();
+    private RoundMapper roundMapper = new RoundMapper();
+    private static PersistenceController persistentieController;
+
+    private Statement stmt;
+
+    public static PersistenceController getInstance() {
+        if (persistentieController == null) {
+            persistentieController = new PersistenceController();
+        }
+        return persistentieController;
+    }
+
+    /**
+     *
+     */
+    public void saveGame(String gameName, int numberOfRounds, int currentRound, String[][][] board, String[][] players, int[] fortuneIDs) {
+        String[][][] game = new String[4][][];
+        game[0] = new String[1][4];
+        game[1] = new String[board.length * board.length][8];
+        game[2] = new String[players.length][6];
+        game[3] = new String[fortuneIDs.length][4];
+
+        try {
+            String host = "jdbc:mysql://localhost:3306/targui";
+            String uName = "root";
+            String uPass = "root";
+            Connection con = DriverManager.getConnection(host, uName, uPass);
+            stmt = con.createStatement();
+        } catch (SQLException ex) {
+            Logger.getLogger(GameMapper.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        String gameId = getNextGameId();
+        
+        game[0][0][0] = gameId;                             //gameId
+        game[0][0][1] = gameName;                           //gameName
+        game[0][0][2] = Integer.toString(numberOfRounds);   //nrOfRounds
+        game[0][0][3] = Integer.toString(currentRound);     //currentRound
+        gameMapper.saveGame(game[0][0], gameName);
+
+        int i = 0;
+        for (String[] p : players) {
+            game[2][i][0] = Integer.toString(i + 4 * Integer.parseInt(gameId));    //playerId
+            game[2][i][1] = p[0];                   //playerName
+            game[2][i][2] = p[1];                   //playerColor
+            game[2][i][3] = p[2];                   //playerSector
+            game[2][i][4] = p[3];                   //playerMoney
+            game[2][i][5] = gameId;                 //gameId
+            i++;
+        }
+        playerMapper.savePlayers(game[2]);
+
+        i = 0;
+        for (int x = 0; x < 7; x++) {
+            for (int y = 0; y < 7; y++) {
+                //volgorde 00-01-02...
+                game[1][i][0] = Integer.toString(i + 49 * Integer.parseInt(gameId));        //squareId
+                game[1][i][1] = Integer.toString(x);        //xCoord
+                game[1][i][2] = Integer.toString(y);        //yCoord
+                game[1][i][3] = board[x][y][0];             //areaCard
+                game[1][i][4] = board[x][y][6];             //camels
+                game[1][i][5] = board[x][y][3];             //sector
+                game[1][i][6] = gameId;                     //gameId
+                game[1][i][7] = getPlayerId(board[x][y][4]);  //playerId
+                i++;
+            }
+        }
+        squareMapper.saveSquares(game[1]);
+
+        i = 0;
+        for (int fortune : fortuneIDs) {
+            game[3][i][0] = Integer.toString(i + fortuneIDs.length * Integer.parseInt(gameId));        //roundId
+            game[3][i][1] = Integer.toString(i);    //roundNr
+            game[3][i][2] = Integer.toString(fortune);  //fortune
+            game[3][i][3] = gameId;                     //gameId
+            i++;
+        }
+        roundMapper.saveRounds(game[3]);
+    }
+
+    /**
+     *
+     * @param gameNaam
+     * @return
+     */
+    public String[][][] getSavedGame(String gameNaam) {
+        int gameId = Integer.parseInt(gameMapper.getGame(gameNaam)[0]);
+        String[][][] savedGame = new String[4][49][8];
+        savedGame[0][0] = gameMapper.getGame(gameNaam);
+        savedGame[1] = squareMapper.getSquares(gameId);
+        savedGame[2] = playerMapper.getPlayers(gameId);
+        savedGame[3] = roundMapper.getRounds(gameId);
+        return savedGame;
+    }
+
+    public String getPlayerId(String name) {
+        if (!name.isEmpty()) {
+            name = "'" + name + "'";
+            String playerId = "";
+            try {
+                String SQL = "SELECT * FROM player WHERE playerName = " + name;
+                ResultSet rs = stmt.executeQuery(SQL);
+                if (rs.next()) {
+                    playerId = rs.getString("playerId");
+                }
+            } catch (SQLException ex) {
+                Logger.getLogger(PersistenceController.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            return playerId;
+        } else {
+            return null;
+        }
+    }
+
+    public String getNextGameId() {
+        String gameId = "";
+        try {
+            String SQL = "SELECT MAX(gameId) + 1 FROM game";
+            ResultSet rs = stmt.executeQuery(SQL);
+            if (rs.next()) {
+                gameId = rs.getString(1);
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(PersistenceController.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        if (gameId == null) {
+            return "0";
+        }
+        else {
+            return gameId;
+        }
+    }
+}

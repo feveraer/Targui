@@ -1,0 +1,513 @@
+package domain;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import utils.Collections;
+
+/**
+ * Represents one complete game.
+ *
+ * @author Frederic Everaert
+ * @author Gilles Baert
+ * @author Jonas De Bruycker
+ * @author Sander De Quick
+ */
+class Game extends Model {
+
+    // Maximum number of players able to participate in one game (Default 4).
+    public static final int MAX_PLAYERS = 4;
+
+    // Maximum number of rounds in one game (Default 16).
+    public static final int MAX_ROUNDS = 16;
+
+    private Player[] players;
+    private Board board;
+    private Fortune[] fortunes;
+    private Round currentRound;
+    private int numberOfRounds;
+    private int currentRoundNumber = 0;
+    private Player playerToMove;
+    private FortuneRepository fortuneRepo;
+    private int[] roundEvaluation;
+    private boolean gameLoaded;
+
+    public Game() {
+        players = new Player[MAX_PLAYERS];
+        initBoard();
+    }
+
+    public void addPlayer(Player player) {
+        boolean check = false;
+        for (int i = 0; i < Game.MAX_PLAYERS; i++) {
+            if (players[i] == null) {
+                players[i] = player;
+                check = true;
+                break;
+            }
+        }
+        if (!check) {
+            throw new UnsupportedOperationException("exp.maxPlayers");
+        }
+    }
+
+    public void clear() {
+        Arrays.fill(players, null);
+        numberOfRounds = 0;
+        currentRoundNumber = 0;
+        board.clear();
+    }
+
+    /**
+     * Initializes the board and sectors.
+     */
+    public void initBoard() {
+        board = new Board(this);
+        board.initSectors();
+    }
+
+    /**
+     * Populates a specific square.
+     *
+     * @param sqX
+     * @param sqY
+     * @param region
+     * @param camels
+     * @param player
+     * @param sector
+     */
+    public void populateSquare(int sqX, int sqY, String region, int camels, Player player, int sector) {
+        board.populateSquare(sqX, sqY, Region.valueOf(region.toUpperCase()), camels, player, sector);
+    }
+
+    public void setBoardFilled(boolean flag) {
+        board.setBoardFilled(flag);
+    }
+
+    public boolean isBoardFilled() {
+        return board.isBoardFilled();
+    }
+
+    /**
+     * Populates the board.
+     *
+     * @throws InterruptedException
+     */
+    public void populateBoard() throws InterruptedException {
+        board.populateBoard();
+    }
+
+    /**
+     * Sets the number of rounds for this particular game.
+     *
+     * @param numberOfRounds
+     */
+    public void setNumberOfRounds(int numberOfRounds) {
+        this.numberOfRounds = numberOfRounds;
+        fortuneRepo = new FortuneRepository(this);
+        fortunes = new Fortune[numberOfRounds];
+        fireStateChanged();
+    }
+
+    /**
+     * Sets the current round number. Used for loading games.
+     *
+     * @param roundNumber
+     */
+    public void setCurrentRoundNumber(int roundNumber) {
+        currentRoundNumber = roundNumber;
+        fireStateChanged();
+    }
+
+    /**
+     * Sets the fortune card of a specific round. Used for loading games.
+     *
+     * @param round
+     * @param fortuneID
+     */
+    public void setFortune(int round, int fortuneID) {
+        fortunes[round] = fortuneRepo.getFortune(fortuneID);
+    }
+
+    /**
+     * Initializes the rounds.
+     *
+     * @param numberOfRounds
+     */
+    public void setupRounds(int numberOfRounds) {
+        if (numberOfRounds < 1 || numberOfRounds > MAX_ROUNDS) {
+            throw new IllegalArgumentException(String.format("exp.integerBetween %d", MAX_ROUNDS));
+        }
+        this.numberOfRounds = numberOfRounds;
+        Fortune[] fortuneAll = new FortuneRepository(this).getFortunes();
+        fortunes = Arrays.copyOfRange(fortuneAll, 0, numberOfRounds);
+        Collections.shuffle(fortunes, 1);
+    }
+
+    /**
+     * Starts a new round.
+     *
+     * @throws UnsupportedOperationException
+     */
+    private int newRound() throws UnsupportedOperationException {
+        if (currentRoundNumber < numberOfRounds) {
+            currentRound = new Round(players, fortunes[currentRoundNumber]);
+            int diceroll = currentRound.populateTurns();
+            resetRegionValuesOfRound();
+            currentRoundNumber++;
+            return diceroll;
+        } else {
+            throw new UnsupportedOperationException("exp.maxRounds");
+        }
+    }
+
+    /**
+     * Resets both economic and strategic values of all types back to their
+     * default values. Must be called after each round.
+     */
+    private void resetRegionValuesOfRound() {
+        for (Region region : Region.values()) {
+            region.resetCurrentValues();
+        }
+    }
+
+    /**
+     * Sets the economic value of a certain region for this round.
+     *
+     * @param region
+     * @param econValue
+     */
+    public void setEconValueOfRound(Region region, int econValue) {
+        region.setCurrentEconValue(econValue);
+        fireStateChanged();
+    }
+
+    /**
+     * Sets the strategic value of a certain region for this round.
+     *
+     * @param region
+     * @param stratValue
+     */
+    public void setStratValueOfRound(Region region, int stratValue) {
+        region.setCurrentStratValue(stratValue);
+        fireStateChanged();
+    }
+
+    /**
+     * Returns the name(s) of the victor(s). Returns an empty array if there is
+     * no winner yet.
+     *
+     * @return
+     */
+    public List<String> getVictors() {
+        List<String> victors = new ArrayList<>();
+        List<Player> stillStanding = stillStanding();
+        if (stillStanding.size() == 1) {
+            victors.add(stillStanding.get(0).getName());
+            return victors;
+        } else if (currentRoundNumber == numberOfRounds && currentRound.getCurrentTurnNumber() == currentRound.getNumberOfTurns()) {
+            if (roundEvaluation == null) {
+                throw new UnsupportedOperationException("exp.roundEvaluationUnknown");
+            }
+            Player victor = players[0];
+            victors.add(victor.getName());
+            int largest = roundEvaluation[0];
+            for (int i = 1; i < roundEvaluation.length; i++) {
+                if (roundEvaluation[i] > largest) {
+                    largest = roundEvaluation[i];
+                    victors.clear();
+                    victor = players[i];
+                    victors.add(victor.getName());
+                } else if (roundEvaluation[i] == largest) {
+                    victors.add(players[i].getName());
+                }
+            }
+            if (victors.size() > 1) {
+                for (int i = 1; i < victors.size(); i++) {
+                    if (players[i].getSilver() > victor.getSilver()) {
+                        victors.clear();
+                        victor = players[i];
+                        victors.add(victor.getName());
+                    } else if (players[i].getSilver() == victor.getSilver()) {
+                        if (getNumberOfCamelsByPlayer(players[i]) > getNumberOfCamelsByPlayer(victor)) {
+                            victors.clear();
+                            victor = players[i];
+                            victors.add(victor.getName());
+                        }
+                    }
+                }
+            }      
+        }
+        return victors;
+
+    }
+
+    /**
+     * Returns the amount of camels a player owns. Used for the calculation of
+     * the victory conditions.
+     *
+     * @return
+     */
+    private int getNumberOfCamelsByPlayer(Player player) {
+        int amount = 0;
+        Square[][] sq = board.getSquares();
+        for (Square[] sq1 : sq) {
+            for (Square square : sq1) {
+                if (square.getPlayer() != null && square.getPlayer().equals(player)) {
+                    amount += square.getCamels();
+                }
+            }
+        }
+        return amount;
+    }
+
+    /**
+     * Checks whether a player still owns territory.
+     *
+     * @return
+     */
+    private List<Player> stillStanding() {
+        List<Player> stillStanding = new ArrayList<>();
+        Square[][] squares = board.getSquares();
+        for (int pIndex = 0; pIndex < MAX_PLAYERS; pIndex++) {
+            for (int i = 0; i < squares.length; i++) {
+                for (int j = 0; j < squares[i].length; j++) {
+                    try {
+                        if (squares[i][j].getPlayer().equals(players[pIndex])) {
+                            stillStanding.add(players[pIndex]);
+                            j = squares[i].length - 1;
+                            i = squares[i].length - 1;
+                        }
+                    } catch (NullPointerException exp) {
+                        // No current player for square, do nothing.
+                    }
+                }
+            }
+        }
+
+        return stillStanding;
+    }
+
+    /**
+     * Returns a list of shuffled fortune cards the size of the amount of rounds
+     * indicated. To be called after the user set the number of rounds.
+     *
+     * @return
+     */
+    public Fortune[] getFortunes() {
+        return fortunes;
+    }
+
+    /**
+     * Returns the number of rounds.
+     *
+     * @return
+     */
+    public int getNumberOfRounds() {
+        return numberOfRounds;
+    }
+
+    /**
+     * Returns the current round number.
+     *
+     * @return
+     */
+    public int getCurrentRoundNumber() {
+        return currentRoundNumber;
+    }
+
+    /**
+     * Returns the current turn number.
+     *
+     * @return
+     */
+    public int getCurrentTurnNumber() {
+        return currentRound.getCurrentTurnNumber();
+    }
+
+    /**
+     * REturns the number of turns for the current round.
+     *
+     * @return
+     */
+    public int getNumberOfTurns() {
+        return currentRound.getNumberOfTurns();
+    }
+
+    /**
+     * Returns the next turn.
+     *
+     * @return
+     */
+    public String[] getNextTurn() {
+        String[] turnInfo = new String[3];
+        if (currentRoundNumber == 0 || gameLoaded) {
+            String diceroll = Integer.toString(newRound());
+            turnInfo[2] = diceroll;
+            gameLoaded = false;
+        }
+        try {
+            Turn turn = currentRound.getNextTurn();
+            String turnString = turn.getDetails();
+            if (turn instanceof Player) {
+                turnInfo[0] = turnString;
+            } else {
+                turnInfo[1] = turnString;
+            }
+            return turnInfo;
+        } catch (ArrayIndexOutOfBoundsException e) {
+            String diceroll = Integer.toString(newRound());
+            String[] turn = getNextTurn();
+            if (turn[0] != null) {
+                turnInfo[0] = turn[0];
+            } else {
+                turnInfo[1] = turn[1];
+            }
+            turnInfo[2] = diceroll;
+            return turnInfo;
+        }
+    }
+
+    /**
+     * Evaluate the score of the current round. To be called after a round.
+     *
+     * @return
+     */
+    public int[] evaluateRound() {
+        roundEvaluation = currentRound.evaluate(board.getSquares());
+        return roundEvaluation;
+    }
+
+    /**
+     * Places the settlement of a player on the indicated square.
+     *
+     * @param player
+     * @param x
+     * @param y
+     */
+    public void placeSettlement(Player player, int x, int y) {
+        board.placeSettlement(player, x, y);
+    }
+
+    /**
+     * Returns the board.
+     *
+     * @return
+     */
+    public Board getBoard() {
+        return board;
+    }
+
+    /**
+     * Returns the players currently in this game.
+     *
+     * @return
+     */
+    public Player[] getPlayers() {
+        return players;
+    }
+
+    /**
+     * Purchase an amount of camels and places them on a specific square. It is
+     * the responsability of the client to make sure that the square indicated
+     * is effectively owned by the player making the purchase.
+     *
+     * @param x
+     * @param y
+     * @param numberOfCamels
+     */
+    public void purchaseCamels(int x, int y, int numberOfCamels) {
+        board.purchaseCamels(playerToMove, x, y, numberOfCamels);
+    }
+
+    /**
+     * Returns the adjacent squares of an indicated square. Used to return a
+     * list of squares (by coordinates) to indicate where a player can move to.
+     *
+     * @param x
+     * @param y
+     * @return
+     */
+    public List<int[]> getAdjacentSquares(int x, int y) {
+        return board.getAdjacentSquares(x, y);
+    }
+
+    /**
+     * Moves a set amount of camels from one square to an adjacent one. It is
+     * the responsability of the client to make sure that the move is legal. Use
+     * the getAdjacentSquares method of this class to indicate where a player is
+     * allowed to move to.
+     *
+     * @param xFrom
+     * @param yFrom
+     * @param xTo
+     * @param yTo
+     * @param numberOfCamels
+     */
+    public void move(int xFrom, int yFrom, int xTo, int yTo, int numberOfCamels) {
+        playerToMove = (Player) currentRound.getCurrentTurn();
+        board.move(playerToMove, xFrom, yFrom, xTo, yTo, numberOfCamels);
+    }
+
+    /**
+     * Initiates an attack. It is the responsability of the client to make sure
+     * that the attack is legal. Use the getAdjacentSquares method of this class
+     * to indicate which squares a player is allowed to attack.
+     *
+     * @param xFrom
+     * @param yFrom
+     * @param xTo
+     * @param yTo
+     */
+    public void initiateAttack(int xFrom, int yFrom, int xTo, int yTo) {
+        playerToMove = (Player) currentRound.getCurrentTurn();
+        board.initiateAttack(playerToMove, xFrom, yFrom, xTo, yTo);
+    }
+
+    /**
+     * Executes one subround of an attack.
+     *
+     * battleStatus[0]: status of attack: 0 = attacking player won, 1 =
+     * defending player held, 2 = both areas still have camels. battleStatus[1]:
+     * Diceroll by attacking player. battleStatus[2]: Number of killed camels on
+     * attacking square. battleStatus[3]: Diceroll by defending player.
+     * battleStatus[4]: Number of killed camels on safe square.
+     *
+     * @param player
+     * @param xTo
+     * @param yTo
+     * @return battleStatus
+     */
+    public int[] attack() {
+        return board.attack(playerToMove);
+    }
+
+    /**
+     * Moves an amount of camels after the battle is won. Must be called after a
+     * battle is won by the player in order to move camels to the newly
+     * conquered square.
+     *
+     * @param numberOfCamels
+     */
+    public void moveCamelsAfterWonBattle(int numberOfCamels) {
+        board.moveCamelsAfterWonBattle(playerToMove, numberOfCamels);
+    }
+
+    /**
+     * Used to set whether a game state has been loaded.
+     *
+     * @param flag
+     */
+    public void setGameLoaded(boolean flag) {
+        gameLoaded = flag;
+    }
+
+    /**
+     * Returns true if a game state has been loaded.
+     *
+     * @return
+     */
+    public boolean isGameLoaded() {
+        return gameLoaded;
+    }
+}

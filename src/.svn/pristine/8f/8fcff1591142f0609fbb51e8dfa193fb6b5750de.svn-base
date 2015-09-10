@@ -1,0 +1,16 @@
+
+import domein.Domeincontroller;
+import gui.ConsoleApplicatie;
+
+
+/**
+ *
+ * @author Frederic
+ */
+public class StartUp {
+    
+    public static void main(String[] args) {
+        Domeincontroller dc = new Domeincontroller();
+        new ConsoleApplicatie(dc);
+    }
+}

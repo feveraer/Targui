@@ -1,0 +1,24 @@
+TODO on next refactor (after UC6)
+
+javadoc
+optimalisatie
+constructors (gebruik setters)
+gebiedskaart Shuffle vervangen door zelfgeschreven shufflealgoritme
+locatie kleuren enum
+algoritmen in andere threads?
+gebiedskaart default values
+aantal ronden wordt parameter van spel ipv methode in DC
+
+
+Domeincontroler - startSpel(Speler[] spelers, int AantalRonden)
+
+Spel - 
+    while(!won) {
+        speelRonde();
+        checkWon();
+    }
+
+Ronde - return beurt
+verwacht DC - speelBeurt
+return beurt
+

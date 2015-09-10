@@ -1,0 +1,17 @@
+package domein;
+
+public class Erg extends Gebiedskaart {
+    
+    private final int economischeWaarde = 1;
+    private final int strategischeWaarde = 0;
+
+    public int getEconomischeWaarde() {
+        return economischeWaarde;
+    }
+
+    public int getStrategischeWaarde() {
+        return strategischeWaarde;
+    }
+    
+    
+}

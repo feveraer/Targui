@@ -1,0 +1,290 @@
+package domain;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Random;
+import utils.Collections;
+
+/**
+ * Represents one complete game.
+ *
+ * @author Frederic Everaert
+ * @author Gilles Baert
+ * @author Jonas De Bruycker
+ * @author Sander De Quick
+ */
+class Game extends Model {
+
+    public static final int MAX_PLAYERS = 4;
+    public static final int MAX_ROUNDS = 16;
+    private final Player[] players;
+    private Board board;
+    private Action[] fortunes;
+    private Round round;
+    private int numberOfRounds;
+    private int currentRound = 0;
+    private int[] evaluationOfRound;
+    private int[][][] regionValuesOfRound;
+    private boolean attack = true;
+
+    public Game(Player[] players) {
+        this.players = players;
+    }
+
+    public void initBoard() {
+        board = new Board(this);
+        board.initSectors();
+    }
+
+    public void populateBoard() throws InterruptedException {
+        board.populateBoard();
+    }
+
+    public void setupRounds(int numberOfRounds) {
+        if (numberOfRounds < 1 || numberOfRounds > MAX_ROUNDS) {
+            throw new IllegalArgumentException("Requires an integer between 1 and " + MAX_ROUNDS);
+        }
+        this.numberOfRounds = numberOfRounds;
+        Action[] fortuneAll = new Fortune(this).getActions();
+        fortunes = Arrays.copyOfRange(fortuneAll, 0, numberOfRounds);
+        Collections.shuffle(fortunes, 1);
+        newRound();
+    }
+
+    private void newRound() throws UnsupportedOperationException {
+        if (currentRound < numberOfRounds) {
+            round = new Round(players, fortunes[currentRound]);
+            resetRegionValuesOfRound();
+            currentRound++;
+        } else {
+            throw new UnsupportedOperationException("Maximum number of rounds (" + numberOfRounds + ") reached");
+        }
+    }
+
+    private void resetRegionValuesOfRound() {
+        regionValuesOfRound = new int[Board.DIM][Board.DIM][2];
+        Square[][] squares = board.getSquares();
+        for (int i = 0; i < squares.length; i++) {
+            for (int j = 0; j < squares[i].length; j++) {
+                setEconValueOfRound(i, j, squares[i][j].getRegion().getEconValue());
+                setStratValueOfRound(i, j, squares[i][j].getRegion().getStratValue());
+            }
+        }
+    }
+
+    public void setEconValueOfRound(int x, int y, int econValue) {
+        regionValuesOfRound[x][y][0] = econValue;
+        fireStateChanged();
+    }
+
+    public void setStratValueOfRound(int x, int y, int stratValue) {
+        regionValuesOfRound[x][y][1] = stratValue;
+        fireStateChanged();
+    }
+
+    private String getVictoryCondition() {
+        List<Player> stillStanding = stillStanding();
+        if (stillStanding.size() == 1) {
+            return stillStanding.get(0).getName();
+        } else if (currentRound == numberOfRounds && round.getCurrentTurnNumber() == round.getNumberOfTurns()) {
+            evaluateRound();
+            for (int i = 0; i < MAX_PLAYERS; i++) {
+                players[i].setSilver(players[i].getSilver() + evaluationOfRound[i]);
+            }
+            Player victor = players[0];
+            for (int i = 1; i < players.length; i++) {
+                if (players[i].getSilver() > victor.getSilver()) {
+                    victor = players[i];
+                }
+            }
+            return victor.getName();
+        } else {
+            return "";
+        }
+    }
+
+    private List<Player> stillStanding() {
+        List<Player> stillStanding = new ArrayList<>();
+        Square[][] squares = board.getSquares();
+        for (int pIndex = 0; pIndex < MAX_PLAYERS; pIndex++) {
+            for (int i = 0; i < squares.length; i++) {
+                for (int j = 0; j < squares[i].length; j++) {
+                    try {
+                        if (squares[i][j].getPlayer().equals(players[pIndex])) {
+                            stillStanding.add(players[pIndex]);
+                            j = squares[i].length - 1;
+                            i = squares[i].length - 1;
+                        }
+                    } catch (NullPointerException exp) {
+                        //no current player for square, do nothing
+                    }
+                }
+            }
+        }
+
+        return stillStanding;
+    }
+
+    public Round getRound() {
+        return round;
+    }
+
+    public int getNumberOfRounds() {
+        return numberOfRounds;
+    }
+
+    public int getCurrentRound() {
+        return currentRound;
+    }
+
+    public int getCurrentTurn() {
+        return round.getCurrentTurnNumber();
+    }
+
+    public int getNumberOfTurns() {
+        return round.getNumberOfTurns();
+    }
+
+    //String array size 2: [turn, winner]
+    public String[] getNextTurn() {
+        String[] result = new String[2];
+        String vc = getVictoryCondition();
+        if (!vc.isEmpty()) {
+            result[1] = vc;
+            return result;
+        }
+        try {
+            result[0] = round.getNextTurn().toString();
+            return result;
+        } catch (ArrayIndexOutOfBoundsException e) {
+            evaluateRound();
+            for (int i = 0; i < MAX_PLAYERS; i++) {
+                players[i].setSilver(players[i].getSilver() + evaluationOfRound[i]);
+            }
+            newRound();
+            return getNextTurn();
+        }
+    }
+
+    private void evaluateRound() {
+        evaluationOfRound = new int[MAX_PLAYERS];
+        boolean[] hasSettlement = new boolean[MAX_PLAYERS];
+        Square[][] squares = board.getSquares();
+        for (int pIndex = 0; pIndex < evaluationOfRound.length; pIndex++) {
+            hasSettlement[pIndex] = false;
+            for (int i = 0; i < Board.DIM; i++) {
+                for (int j = 0; j < Board.DIM; j++) {
+                    if (squares[i][j].getRegion().equals(Region.SETTLEMENT)
+                            && squares[i][j].getPlayer().getName().equals(players[pIndex].getName())) {
+                        hasSettlement[pIndex] = true;
+                    }
+                    try {
+                        if (squares[i][j].getPlayer().equals(players[pIndex])) {
+                            evaluationOfRound[pIndex] += regionValuesOfRound[i][j][0];
+                        }
+                    } catch (NullPointerException exp) {
+                        //no player on current square, do nothing
+                    }
+                }
+            }
+            if (!hasSettlement[pIndex]) {
+                evaluationOfRound[pIndex] = 0;
+            }
+        }
+    }
+
+    public void placeSettlement(Player player, int x, int y) {
+        board.placeSettlement(player, x, y);
+    }
+
+    public Board getBoard() {
+        return board;
+    }
+
+    public Player[] getPlayers() {
+        return players;
+    }
+
+    public int[][][] getRegionValuesOfRound() {
+        return regionValuesOfRound;
+    }
+
+    // Responsability of the GUI to make sure that the square indicated is effectively owned by Player p
+    public void purchaseCamels(Player p, int x, int y, int numberOfCamels) {
+        if (x < 0 || x > Board.DIM || y < 0 || y > Board.DIM) {
+            throw new IllegalArgumentException("Illegal coordinates, please specify x and y coordinates between 0 and " + Board.DIM);
+        }
+        if (numberOfCamels < 0) {
+            throw new IllegalArgumentException("Illegal number of camels, please specify an integer between 0 and " + Integer.MAX_VALUE);
+        }
+        if (p.getSilver() < numberOfCamels) {
+            throw new IllegalArgumentException("Player " + p.getName() + " does not have enough silver to purchase " + numberOfCamels + " camels");
+        }
+        Square[][] sq = board.getSquares();
+        sq[x][y].setCamels(sq[x][y].getCamels() + numberOfCamels);
+        p.setSilver(p.getSilver() - numberOfCamels);
+    }
+
+    public List<int[]> getAdjacentMoveSquares(int x, int y) {
+        return board.getAdjacentMoveSquares(x, y);
+    }
+
+    // Responsability of the GUI to make sure that the square indicated is effectively owned by Player p
+    public void move(Player player, int xFrom, int yFrom, int xTo, int yTo, int numberOfCamels) {
+        Random rnd = new Random();
+        if (xFrom < 0 || xFrom > Board.DIM || yFrom < 0 || yFrom > Board.DIM || xTo < 0 || xTo > Board.DIM || yTo < 0 || yTo > Board.DIM) {
+            throw new IllegalArgumentException("Illegal coordinates, please specify x and y coordinates between 0 and " + Board.DIM);
+        }
+        if (numberOfCamels < 1) {
+            throw new IllegalArgumentException("You need to move at least 1 camel.");
+        }
+        Square sq1 = board.getSquares()[xFrom][yFrom];
+        Square sq2 = board.getSquares()[xTo][yTo];
+        if (sq1.getCamels() < numberOfCamels) {
+            throw new IllegalArgumentException("Illegal amount of camels. Only " + sq1.getCamels() + " are available on the square");
+        }
+        if (sq2.getPlayer() == null) {
+            // If the destination is neutral
+            sq1.setCamels(sq1.getCamels() - numberOfCamels);
+            sq2.setCamels(sq2.getCamels() + numberOfCamels);
+            if (numberOfCamels > 0) {
+                sq2.setPlayer(player);
+            }
+        } else {
+            // If the destination is owned by another player
+            if (sq2.getCamels() <= 0) {
+                sq2.setCamels(sq1.getCamels());
+                sq1.setCamels(0);
+                sq2.setPlayer(player);
+                attack = true;
+                return;
+            }
+            while (sq1.getCamels() != 0 && sq2.getCamels() != 0 && attack == true) {
+                // Defender loses camels
+                int diceroll = rnd.nextInt(6) + 1;
+                sq2.setCamels(sq2.getCamels() - (diceroll + sq2.getRegion().getStratValue()) / 2);
+                if (sq2.getCamels() <= 0) {
+                    sq2.setCamels(sq1.getCamels());
+                    sq1.setCamels(0);
+                    sq2.setPlayer(player);
+                    attack = true;
+                    return;
+                }
+                // Attacker loses camels
+                diceroll = rnd.nextInt(6) + 1;
+                sq1.setCamels(sq1.getCamels() - (diceroll + sq2.getRegion().getStratValue()) / 2);
+                if (sq1.getCamels() <= 0) {
+                    sq1.setCamels(0);
+                    attack = true;
+                    return;
+                }
+            }
+        }
+    }
+
+    public void cancelAttack() {
+        attack = false;
+    }
+
+}

@@ -1,0 +1,85 @@
+package domain;
+
+import java.util.Arrays;
+import utils.Collections;
+
+/**
+ * Represents one complete game.
+ *
+ * @author Frederic Everaert
+ * @author Gilles Baert
+ * @author Jonas De Bruycker
+ * @author Sander De Quick
+ */
+class Game extends Model {
+
+    public static final int MAX_PLAYERS = 4;
+    public static final int MAX_ROUNDS = 16;
+    private final Player[] players;
+    private final Board board = new Board(this);
+    private final Action[] fortune;
+    private Round round;
+    private int numberOfRounds;
+    private int currentRound = 0;
+
+    public Game(Player[] players, int numberOfRounds) {
+        if (players.length != MAX_PLAYERS) {
+            throw new IllegalArgumentException("The game needs exactly " + MAX_PLAYERS + " players to start");
+        }
+        if (players.length != MAX_PLAYERS) {
+            throw new IllegalArgumentException("The game needs exactly " + MAX_PLAYERS + " unique colors to assign to players to start");
+        }
+        if (numberOfRounds < 0 || numberOfRounds > MAX_ROUNDS) {
+            throw new IllegalArgumentException("Requires an integer between 0 and " + MAX_ROUNDS);
+        }
+        this.numberOfRounds = numberOfRounds;
+        this.players = players;
+        Action[] fortuneAll = new Fortune(this).getActions();
+        fortune = Arrays.copyOfRange(fortuneAll, 0, numberOfRounds - 1);
+        Collections.shuffle(fortune, 1);
+        newRound();
+    }
+
+    private void newRound() throws UnsupportedOperationException {
+        if (currentRound < numberOfRounds) {
+            round = new Round(players, fortune[currentRound]);
+            currentRound++;
+        } else {
+            throw new UnsupportedOperationException("Maximum number of rounds reached");
+        }
+    }
+
+    public Round getRound() {
+        return round;
+    }
+
+    public int getTurns() {
+        return round.getTurns();
+    }
+
+    public Turn getNextTurn() {
+        try {
+            return round.getNextTurn();
+        } catch (ArrayIndexOutOfBoundsException e) {
+            newRound();
+            return getNextTurn();
+        }
+    }
+
+    public void placeSettlement(Player player, int x, int y) {
+        board.placeSettlement(player, x, y);
+    }
+
+    public Board getBoard() {
+        return board;
+    }
+
+    public Player[] getPlayers() {
+        return players;
+    }
+    
+    public int[][] getSectors() {
+        return board.getSectors();
+    }
+
+}

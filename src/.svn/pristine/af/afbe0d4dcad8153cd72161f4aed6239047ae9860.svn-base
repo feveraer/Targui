@@ -1,0 +1,37 @@
+package utils;
+
+import java.util.Random;
+
+/**
+ * Klasse voor implementaties van verscheiden sort- en shufflealgoritmen.
+ *
+ * @author Frederic Everaert
+ * @author Gilles Baert
+ * @author Jonas De Bruycker
+ * @author Sander De Quick
+ */
+public class Sorts {
+
+    /**
+     * Implementatie van het Fisher-Yates-algoritme om een array te schudden.
+     * Heeft mogelijkheid om in groepen te schudden
+     *
+     * @param array array die geschud moet worden.
+     * @param n groep waarin er geschud moet worden.
+     */
+    public static void schudArray(Object[] array, int n) {
+        if (array.length % n != 0) {
+            throw new IllegalArgumentException("Array van lengte " + array.length + " kan niet geschud worden per " + n);
+        }
+        Random rnd = new Random();
+        for (int i = array.length - n; i > n - 1; i -= n) {
+            int index = rnd.nextInt(i / n) * n;
+            for (int j = 0; j < n; j++) {
+                Object a = array[index + j];
+                array[index + j] = array[i + j];
+                array[i + j] = a;
+            }
+        }
+    }
+
+}

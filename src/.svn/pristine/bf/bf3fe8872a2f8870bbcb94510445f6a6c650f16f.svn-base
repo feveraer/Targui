@@ -1,0 +1,193 @@
+package domain;
+
+/**
+ * Repository holding all players.
+ *
+ * @author Frederic Everaert
+ * @author Gilles Baert
+ * @author Jonas De Bruycker
+ * @author Sander De Quick
+ */
+class PlayerRepository extends Model {
+
+    public static final int MAX_PLAYERS = 4;
+    private final Player[] players = new Player[MAX_PLAYERS];
+
+    public void addPlayer(String name, String colorString, int sector) throws IllegalArgumentException {
+        // Check supported color
+        boolean supportedColor = false;
+        Color color = null;
+        if (Color.contains(colorString.toUpperCase())) {
+            supportedColor = true;
+            color = Color.valueOf(colorString.toUpperCase());
+        }
+        if (!supportedColor) {
+            throw new IllegalArgumentException("Gelieve een andere kleur op te geven.");
+        }
+
+        // Check maximum number of players
+        if (players[MAX_PLAYERS - 1] != null) {
+            throw new UnsupportedOperationException("Maximum number of players (" + MAX_PLAYERS + ") reached.");
+        }
+
+        for (Player p : players) {
+            // Check if unique name
+            if (p != null && p.getName().equals(name)) {
+                throw new IllegalArgumentException("Name already in use. Please enter a unique name.");
+            }
+            // Check if unique color
+            if (p != null && p.getColor().name().equalsIgnoreCase(colorString)) {
+                throw new IllegalArgumentException("Color already in use. Please enter a unique color.");
+            }
+            // Check if unique sector
+            if (p != null && p.getSector() == sector) {
+                throw new IllegalArgumentException("Sector already in use. Please enter a unique sector.");
+            }
+        }
+
+        // Add player if conditions are met.
+        for (int i = 0; i < MAX_PLAYERS; i++) {
+            if (players[i] == null) {
+                players[i] = new Player(name, color, sector, this);
+                players[i].setSilver(10);
+                fireStateChanged();
+                break;
+            }
+        }
+    }
+    
+    public void clear() {
+        for (Player p : players) {
+            p = null;
+        }
+    }
+
+    public void setPlayerName(String oldName, String newName) throws IllegalArgumentException {
+        if (oldName == null || oldName.isEmpty()) {
+            throw new NullPointerException("Choose an existing name first.");
+        }
+        if (oldName.equals(newName)) {
+            throw new IllegalArgumentException("The new name has to be different from the old name");
+        }
+        if (!containsPlayer(oldName)) {
+            throw new IllegalArgumentException("Player '" + oldName + "' not found");
+        }
+        if (containsPlayer(newName)) {
+            throw new IllegalArgumentException("Player '" + newName + "' already exists");
+        }
+        for (Player p : players) {
+            if (p.getName().equals(oldName)) {
+                p.setName(newName);
+                fireStateChanged();
+                return;
+            }
+        }
+    }
+
+    public void setPlayerColor(String name, Color color) throws IllegalArgumentException {
+        if (name == null || name.isEmpty()) {
+            throw new NullPointerException("Choose a player first.");
+        }
+        if (!containsPlayer(name)) {
+            throw new IllegalArgumentException("Player '" + name + "' not found");
+        }
+        if (containsColor(color.name())) {
+            throw new IllegalArgumentException("Another player has already chosen " + color.name().toLowerCase());
+        }
+        
+        for (Player p : players) {
+            if (p.getName().equals(name)) {
+                p.setColor(color);
+                fireStateChanged();
+                return;
+            }
+        }
+    }
+
+    public void setPlayerSector(String name, int sector) throws IllegalArgumentException {
+        if (!containsPlayer(name)) {
+            throw new IllegalArgumentException("Player '" + name + "' not found");
+        }
+        if (containsSector(sector)) {
+            throw new IllegalArgumentException("Another player has already chosen sector " + sector + ".");
+        }
+        for (Player p : players) {
+            if (p.getName().equals(name)) {
+                if (p.getSector() == sector) {
+                    return;
+                }
+                p.setSector(sector);
+                fireStateChanged();
+                return;
+            }
+        }
+        throw new IllegalArgumentException("Player '" + name + "' not found");
+    }
+
+    public void setPlayerSilver(String name, int silver) throws IllegalArgumentException {
+        if (!containsPlayer(name)) {
+            throw new IllegalArgumentException("Player '" + name + "' not found");
+        }
+        for (Player p : players) {
+            if (p.getName().equals(name)) {
+                if (p.getSilver() == silver) {
+                    return;
+                }
+                p.setSilver(silver);
+                fireStateChanged();
+                return;
+            }
+        }
+    }
+
+    public boolean containsPlayer(String name) {
+        for (Player p : players) {
+            if (p.getName().equals(name)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    public boolean containsColor(String color) {
+        boolean res = false;
+        for (Player p : players) {
+            if (p.getColor().name().equalsIgnoreCase(color)) {
+                res = true;
+            }
+        }
+        return res;
+    }
+
+    public boolean containsSector(int sector) {
+        boolean res = false;
+        for (Player p : players) {
+            if (p.getSector() == sector) {
+                res = true;
+            }
+        }
+        return res;
+    }
+
+    public Player getPlayer(String name) {
+        for (Player p : players) {
+            if (p.getName().equals(name)) {
+                return p;
+            }
+        }
+        throw new IllegalArgumentException("Player '" + name + "' not found");
+    }
+
+    public Player[] getPlayers() {
+        return players;
+    }
+    
+    public String[] getPlayerNames() {
+        String[] names = new String[MAX_PLAYERS];
+        for (int i = 0; i < players.length; i++) {
+            names[i] = players[i].getName();
+        }
+        return names;
+    }
+
+}

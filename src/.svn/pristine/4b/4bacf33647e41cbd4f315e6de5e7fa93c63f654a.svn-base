@@ -1,0 +1,26 @@
+package exceptions;
+
+/**
+ *
+ * @author Frederic
+ */
+public class DuplicateColorsException extends IllegalArgumentException {
+
+    /**
+     * Creates a new instance of <code>DuplicateColorsException</code> without
+     * detail message.
+     */
+    public DuplicateColorsException() {
+        super();
+    }
+
+    /**
+     * Constructs an instance of <code>DuplicateColorsException</code> with the
+     * specified detail message.
+     *
+     * @param msg the detail message.
+     */
+    public DuplicateColorsException(String msg) {
+        super(msg);
+    }
+}

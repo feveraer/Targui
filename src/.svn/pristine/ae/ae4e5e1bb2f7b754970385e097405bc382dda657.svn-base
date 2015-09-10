@@ -1,0 +1,278 @@
+package domein;
+
+import utils.Sorts;
+import java.util.Arrays;
+
+/**
+ * Representeert de verscheidene noodlotskaarten en hun bijhorende acties.
+ *
+ * @author Frederic Everaert
+ * @author Gilles Baert
+ * @author Jonas De Bruycker
+ * @author Sander De Quick
+ */
+public class Noodlotskaart {
+
+    private Actie[] geschud;
+    private Actie[] noodlotskaarten;
+    private final Spel spel;
+
+    /**
+     *
+     * @param spel
+     * @param aantalRonden
+     */
+    public Noodlotskaart(Spel spel, int aantalRonden) {
+        this.spel = spel;
+        vulActies();
+        geschud = Arrays.copyOfRange(noodlotskaarten, 0, aantalRonden);
+        Sorts.schudArray(geschud, 1);
+    }
+
+    /**
+     * Verscheidene acties per noodlotskaart. @see Acties.
+     */
+    private void vulActies() {
+        final Spelbord spelbord = spel.getSpelbord();
+        final Speler[] spelers = spel.getSpelers();
+        noodlotskaarten = new Actie[16];
+        noodlotskaarten[0] = new Actie() {
+            @Override
+            public String doeActie() {
+                Vak[][] vakken = spelbord.getVakken();
+                vakken[vakken.length / 2][vakken.length / 2].setAantalKamelen(0);
+                return "De Haussa, een vreemde, vijandige stam, overvalt de centrale zoutwinplaats en steelt er alle kamelen.";
+            }
+        };
+        noodlotskaarten[1] = new Actie() {
+            @Override
+            public String doeActie() {
+                Vak[][] vakken = spelbord.getVakken();
+                for (int i = 0; i < vakken.length; i++) {
+                    for (int j = 0; j < vakken[i].length; j++) {
+                        if (vakken[i][j].getGebied().equals(Gebiedskaart.BERG)) {
+                            vakken[i][j].getGebied().setEconWaarde(3);
+                        }
+                    }
+                }
+                return "In de bergen is zilver ontdekt. De schatting aan het eind van deze ronde is dan ook 3 voor elk bergengebied.";
+            }
+        };
+        noodlotskaarten[2] = new Actie() {
+            @Override
+            public String doeActie() {
+                Vak[][] vakken = spelbord.getVakken();
+                for (int i = 0; i < vakken.length; i++) {
+                    for (int j = 0; j < vakken[i].length; j++) {
+                        if (vakken[i][j].getGebied().equals(Gebiedskaart.NEDERZETTING)) {
+                            for (int k = 0; k < spelers.length; k++) {
+                                if (vakken[i][j].getSpeler().getKleur().equals(spelers[k].getKleur())) {
+                                    spelers[k].setGeldstukken(0);
+                                }
+                            }
+                        }
+                    }
+                }
+                return "Een vijandelijke stam overvalt alle nederzettingen en gaat er met al het goud en zilver vandoor. Stammen zonder nederzettingen behouden hun geld.";
+            }
+        };
+        noodlotskaarten[3] = new Actie() {
+            @Override
+            public String doeActie() {
+                Vak[][] vakken = spelbord.getVakken();
+                for (int i = 0; i < vakken.length; i++) {
+                    for (int j = 0; j < vakken[i].length; j++) {
+                        if (vakken[i][j].getGebied().equals(Gebiedskaart.GUELTA)) {
+                            vakken[i][j].setAantalKamelen(vakken[i][j].getAantalKamelen() - 10);
+                        }
+                    }
+                }
+                return "Het water in de guelta’s is vergiftigd. Van de eventueel aanwezige kamelen sterven er in iedere guelta 10.";
+            }
+        };
+        noodlotskaarten[4] = new Actie() {
+            @Override
+            public String doeActie() {
+                Vak[][] vakken = spelbord.getVakken();
+                for (int i = 0; i < vakken.length; i++) {
+                    for (int j = 0; j < vakken[i].length; j++) {
+                        if (vakken[i][j].getGebied().equals(Gebiedskaart.ERG)) {
+                            vakken[i][j].getGebied().setStratWaarde(3);
+                        }
+                    }
+                }
+                return "Onder invloed van klimatologische omstandigheden, zijn de kenmerken van een ‘erg’ gewijzigd. De resterende beurten van deze ronde heeft iedere ‘erg’ een strategische waarde van 3.";
+            }
+        };
+        noodlotskaarten[5] = new Actie() {
+            @Override
+            public String doeActie() {
+                Vak[][] vakken = spelbord.getVakken();
+                for (int i = 0; i < vakken.length; i++) {
+                    for (int j = 0; j < vakken[i].length; j++) {
+                        if (vakken[i][j].getGebied().equals(Gebiedskaart.GUELTA)) {
+                            vakken[i][j].setAantalKamelen(vakken[i][j].getAantalKamelen() + 5);
+                        }
+                    }
+                }
+                return "Het is voorjaar. In iedere guelta worden 5 kamelen geboren.";
+            }
+        };
+        noodlotskaarten[6] = new Actie() {
+            @Override
+            public String doeActie() {
+                Vak[][] vakken = spelbord.getVakken();
+                for (int i = 0; i < vakken.length; i++) {
+                    for (int j = 0; j < vakken[i].length; j++) {
+                        if (vakken[i][j].getGebied().equals(Gebiedskaart.REG)) {
+                            vakken[i][j].setAantalKamelen(vakken[i][j].getAantalKamelen() - 5);
+                        }
+                    }
+                }
+                return "Door hevige regenval verdrinken in iedere reg 5 kamelen. Die verdwijnen uit het spel.";
+            }
+        };
+        noodlotskaarten[7] = new Actie() {
+            @Override
+            public String doeActie() {
+                Vak[][] vakken = spelbord.getVakken();
+                for (int i = 0; i < vakken.length; i++) {
+                    for (int j = 0; j < vakken[i].length; j++) {
+                        if (vakken[i][j].getAantalKamelen() > 0) {
+                            vakken[i][j].setAantalKamelen(vakken[i][j].getAantalKamelen() - 1);
+                        }
+                    }
+                }
+                return "Een vijandige stam valt het gehele gebied binnen. Van elk gebied met kamelen sneuvelt er één.";
+            }
+        };
+        noodlotskaarten[8] = new Actie() {
+            @Override
+            public String doeActie() {
+                Vak[][] vakken = spelbord.getVakken();
+                for (int i = 0; i < vakken.length; i++) {
+                    for (int j = 0; j < vakken[i].length; j++) {
+                        if (vakken[i][j].getGebied().equals(Gebiedskaart.NEDERZETTING)) {
+                            vakken[i][j].setAantalKamelen(vakken[i][j].getAantalKamelen() / 2);
+                        }
+                    }
+                }
+                return "De kamelenpest breekt uit. De helft van alle kamelen in de nederzetting sterft (naar beneden afronden).";
+            }
+        };
+        noodlotskaarten[9] = new Actie() {
+            @Override
+            public String doeActie() {
+                for (int k = 0; k < spelers.length; k++) {
+                    spelers[k].setGeldstukken(spelers[k].getGeldstukken() + 10);
+                }
+                return "In een gezamenlijke actie van alle stammen wordt een grote karavaan overvallen. Iedere stam ontvangt 10 zilverstukken.";
+            }
+        };
+        noodlotskaarten[10] = new Actie() {
+            @Override
+            public String doeActie() {
+                Vak[][] vakken = spelbord.getVakken();
+                for (int i = 0; i < vakken.length; i++) {
+                    for (int j = 0; j < vakken[i].length; j++) {
+                        if (vakken[i][j].getGebied().equals(Gebiedskaart.GUELTA)) {
+                            if (vakken[i][j].getAantalKamelen() >= 15) {
+                                vakken[i][j].setAantalKamelen(15);
+                            }
+                        }
+                    }
+                }
+                return "Er heerst droogte in de Sahara. In iedere guelta is er voor maximaal 15 kamelen te drinken. Als er meer kamelen in een guelta staan, dan moeten die terug in de doos.";
+            }
+        };
+        noodlotskaarten[11] = new Actie() {
+            @Override
+            public String doeActie() {
+                Vak[][] vakken = spelbord.getVakken();
+                for (int i = 0; i < vakken.length; i++) {
+                    for (int j = 0; j < vakken[i].length; j++) {
+                        if (vakken[i][j].getGebied().equals(Gebiedskaart.ERG)) {
+                            vakken[i][j].setAantalKamelen(vakken[i][j].getAantalKamelen() - 3);
+                        }
+                    }
+                }
+                return "Hevige zandstormen teisteren de Sahara. In iedere ‘erg’ verdwalen 3 kamelen. Ze verdwijnen uit het spel.";
+            }
+        };
+        noodlotskaarten[12] = new Actie() {
+            @Override
+            public String doeActie() {
+                Vak[][] vakken = spelbord.getVakken();
+                for (int i = 0; i < vakken.length; i++) {
+                    for (int j = 0; j < vakken[i].length; j++) {
+                        if (vakken[i][j].getGebied().equals(Gebiedskaart.NEDERZETTING)) {
+                            if (vakken[i][j].getSpeler().getKleur().equals(Spel.KLEUREN.BLAUW.name())) {
+                                vakken[i][j].setAantalKamelen(vakken[i][j].getAantalKamelen() + 10);
+                            }
+                        }
+                    }
+                }
+                return "De Kei Ress (blauw) krijgt hoog bezoek en ontvangt een geschenk: 10 kamelen in de nederzetting.";
+            }
+        };
+        noodlotskaarten[13] = new Actie() {
+            @Override
+            public String doeActie() {
+                Vak[][] vakken = spelbord.getVakken();
+                for (int i = 0; i < vakken.length; i++) {
+                    for (int j = 0; j < vakken[i].length; j++) {
+                        if (vakken[i][j].getGebied().equals(Gebiedskaart.NEDERZETTING)) {
+                            if (vakken[i][j].getSpeler().getKleur().equals(Spel.KLEUREN.ROOD.name())) {
+                                vakken[i][j].setAantalKamelen(vakken[i][j].getAantalKamelen() + 10);
+                            }
+                        }
+                    }
+                }
+                return "De Kei Ibakan (rood) krijgt hoog bezoek en ontvangt een geschenk: 10 kamelen in de nederzetting.";
+            }
+        };
+        noodlotskaarten[14] = new Actie() {
+            @Override
+            public String doeActie() {
+                Vak[][] vakken = spelbord.getVakken();
+                for (int i = 0; i < vakken.length; i++) {
+                    for (int j = 0; j < vakken[i].length; j++) {
+                        if (vakken[i][j].getGebied().equals(Gebiedskaart.NEDERZETTING)) {
+                            if (vakken[i][j].getSpeler().getKleur().equals(Spel.KLEUREN.GROEN.name())) {
+                                vakken[i][j].setAantalKamelen(vakken[i][j].getAantalKamelen() + 10);
+                            }
+                        }
+                    }
+                }
+                return "De Kei Ahaggar (groen) krijgt hoog bezoek en ontvangt een geschenk: 10 kamelen in de nederzetting.";
+            }
+        };
+        noodlotskaarten[15] = new Actie() {
+            @Override
+            public String doeActie() {
+                Vak[][] vakken = spelbord.getVakken();
+                for (int i = 0; i < vakken.length; i++) {
+                    for (int j = 0; j < vakken[i].length; j++) {
+                        if (vakken[i][j].getGebied().equals(Gebiedskaart.NEDERZETTING)) {
+                            if (vakken[i][j].getSpeler().getKleur().equals(Spel.KLEUREN.GEEL.name())) {
+                                vakken[i][j].setAantalKamelen(vakken[i][j].getAantalKamelen() + 10);
+                            }
+                        }
+                    }
+                }
+                return "De Kei Ajjer (geel) krijgt hoog bezoek en ontvangt een geschenk: 10 kamelen in de nederzetting.";
+            }
+        };
+
+    }
+
+    /**
+     * Geeft een lijst van geschudde kaarten.
+     *
+     * @return array van geschudde noodlotskaarten.
+     */
+    public Actie[] getGeschud() {
+        return geschud;
+    }
+
+}

@@ -1,0 +1,25 @@
+- default
+    DONE
+
+- domain:
+    - load implementatie
+
+- gui:
+    - kleuren tonen i.p.v. omschrijving
+    - gamelog die weergeeft wat er gebeurt ipv joptionpane popups
+    - volgende beurt automatisch laten volgen
+    - "end turn" ipv "skip turn" waar nodig
+    - optie om kamelen te kunnen kopen niet geven als speler geen geldstukken meer heeft
+    - kamelen op een vak grafisch tonen, aangepaste strat en econ waarden ook
+    - menu bar (game, options, help)
+    - javadoc
+
+- persistence
+    - javadoc
+
+- properties
+    - 3 taligheid
+
+- utils
+    DONE
+

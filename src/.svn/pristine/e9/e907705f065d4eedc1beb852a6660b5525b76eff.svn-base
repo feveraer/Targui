@@ -1,0 +1,21 @@
+package domein;
+
+/**
+ * Representeert één ronde.
+ *
+ * @author Frederic Everaert
+ * @author Gilles Baert
+ * @author Jonas De Bruycker
+ * @author Sander De Quick
+ */
+public class Ronde {
+
+    private Beurt[] beurten;
+    
+    public Ronde() {
+    }
+    
+    public void start() {
+        
+    }
+}

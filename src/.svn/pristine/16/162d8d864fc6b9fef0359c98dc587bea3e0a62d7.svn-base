@@ -1,0 +1,179 @@
+package gui;
+
+import domain.DomainController;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.sql.SQLException;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+
+/**
+ *
+ * @author Frederic
+ */
+public class StartJFrame extends JFrame {
+
+    private GameJPanel pnlGame;
+    private PlayersJPanel pnlPlayers;
+    private JButton btnNewGame;
+    private JButton btnLoadGame;
+    private JButton btnSaveGame;
+    private DomainController dc;
+
+    public StartJFrame(DomainController dc) {
+        this.dc = dc;
+        initComponents();
+    }
+
+    private void initComponents() {
+        pnlGame = new GameJPanel(this, dc);
+        pnlPlayers = new PlayersJPanel(dc);
+        btnNewGame = new JButton("New game");
+        btnNewGame.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                btnStartActionPerformed();
+            }
+        });
+        btnLoadGame = new JButton("Load game");
+        btnLoadGame.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                btnLoadActionPerformed();
+            }
+        });
+        btnSaveGame = new JButton("Save game");
+        btnSaveGame.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                btnSaveActionPerformed();
+            }
+        });
+        btnSaveGame.setEnabled(false);
+
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
+        getContentPane().setLayout(layout);
+        layout.setHorizontalGroup(
+                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(layout.createSequentialGroup()
+                        .addGap(20, 20, 20)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                .addComponent(pnlGame, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                                        .addComponent(pnlPlayers, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addGap(50, 50, 50)
+                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                                .addComponent(btnNewGame)
+                                                .addComponent(btnLoadGame)
+                                                .addComponent(btnSaveGame))))
+                        .addContainerGap(26, Short.MAX_VALUE))
+        );
+        layout.setVerticalGroup(
+                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(layout.createSequentialGroup()
+                        .addGap(21, 21, 21)
+                        .addComponent(pnlGame, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addComponent(pnlPlayers, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGroup(layout.createSequentialGroup()
+                                        .addComponent(btnNewGame)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(btnLoadGame)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(btnSaveGame)))
+                        .addContainerGap(33, Short.MAX_VALUE))
+        );
+
+        setTitle("Targui demo");
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        pack();
+        setVisible(true);
+    }
+
+    public void activateBtnInitBoard() {
+        pnlGame.activateBtnInitBoard();
+    }
+
+    public void activateBtnEditPlayer() {
+        pnlPlayers.activateBtnEditPlayer();
+    }
+
+    public void btnSaveSetEnabled(boolean flag) {
+        btnSaveGame.setEnabled(flag);
+    }
+    
+    public void btnLoadSetEnabled(boolean flag) {
+        btnLoadGame.setEnabled(flag);
+    }
+
+    private void btnStartActionPerformed() {
+        dc.clearPlayerRepository();
+        dc.clearGame();
+        CreatePlayersJFrame createPlayersJFrame = new CreatePlayersJFrame(this, dc);
+        btnNewGame.setEnabled(false);
+        btnLoadGame.setEnabled(false);
+    }
+
+    private void btnLoadActionPerformed() {
+        pnlGame.registerGameAsListener();
+        pnlGame.registerBoardAsListener();
+        int exitState = -1;
+        while (exitState == -1) {
+            String loadName = JOptionPane.showInputDialog("Enter the game you want to load");
+            if (loadName == null) {
+                exitState = 1;
+            } else if (loadName.isEmpty()) {
+                exitState = -1;
+                JOptionPane.showMessageDialog(null, "Name cannot be empty", "Incorrect input", JOptionPane.ERROR_MESSAGE);
+            } else {
+                try {
+                    dc.loadGame(loadName);
+                    exitState = 0;
+                } catch (SQLException exp) {
+                    exitState = 1;
+                    JOptionPane.showMessageDialog(null, "Can't connect to the database.", "Error", JOptionPane.ERROR_MESSAGE);
+                } catch (IllegalArgumentException exp) {
+                    exitState = -1;
+                    JOptionPane.showMessageDialog(null, exp.getMessage(), "Incorrect input", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        }
+        if (exitState == 0) {
+            btnNewGame.setEnabled(false);
+            dc.setGameLoaded(true);
+            pnlGame.setSquareMouseListeners();
+            pnlGame.setFinalizedRounds(dc.getCurrentRoundNumber());
+            activateBtnEditPlayer();
+            pnlGame.btnPlayEnabled(true);
+            pnlGame.setLblCurrentTurn("");
+            pnlGame.setLblNumberOfTurns("");
+            pnlGame.setBtnPlayText("Next round");
+            pnlGame.resetBoard();
+        }
+    }
+
+    private void btnSaveActionPerformed() {
+        boolean exitState = false;
+        while (!exitState) {
+            String saveName = JOptionPane.showInputDialog("Enter a unique save name");
+            if (saveName == null) {
+                exitState = true;
+            } else if (saveName.isEmpty()) {
+                exitState = false;
+                JOptionPane.showMessageDialog(null, "Name cannot be empty", "Incorrect input", JOptionPane.ERROR_MESSAGE);
+            } else {
+                try {
+                    dc.saveGame(saveName);
+                    exitState = true;
+                } catch (SQLException exp) {
+                    exitState = true;
+                    JOptionPane.showMessageDialog(null, "Can't connect to the database.", "Error", JOptionPane.ERROR_MESSAGE);
+                } catch (IllegalArgumentException exp) {
+                    JOptionPane.showMessageDialog(null, exp.getMessage(), "Incorrect input", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        }
+    }
+}

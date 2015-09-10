@@ -1,0 +1,71 @@
+package domain;
+
+/**
+ * Represents a fortune card.
+ *
+ * @author Frederic Everaert
+ * @author Gilles Baert
+ * @author Jonas De Bruycker
+ * @author Sander De Quick
+ */
+class Fortune implements Turn {
+
+    private int identifier;
+    private Action action;
+
+    /**
+     * 
+     * @param identifier
+     * @param action 
+     */
+    public Fortune(int identifier, Action action) {
+        setIdentifier(identifier);
+        setAction(action);
+    }
+
+    /**
+     * Returns the identifier.
+     * 
+     * @return 
+     */
+    public int getIdentifier() {
+        return identifier;
+    }
+
+    /**
+     * Sets the identifier.
+     * 
+     * @param identifier 
+     */
+    public void setIdentifier(int identifier) {
+        this.identifier = identifier;
+    }
+
+    /**
+     * Sets the current action.
+     * 
+     * @param action 
+     */
+    public void setAction(Action action) {
+        this.action = action;
+    }
+
+    /**
+     * Executes the action.
+     * 
+     * @return 
+     */
+    public String doAction() {
+        return action.doAction();
+    }
+
+    /**
+     * Returns the details. The Fortune action gets executed and returns it's description.
+     * 
+     * @return 
+     */
+    @Override
+    public String getDetails() {
+        return doAction();
+    }
+}

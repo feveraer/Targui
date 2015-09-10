@@ -1,0 +1,28 @@
+- default
+    DONE
+
+- domain
+    DONE
+
+- ui
+    - fixes
+
+- gui
+    - fixes
+    - import cleanup
+    - javadoc
+    - kleuren tonen i.p.v. omschrijving (PlayerJPanel)
+    - gamelog die weergeeft wat er gebeurt ipv joptionpane popups //mss
+    - volgende beurt automatisch laten volgen                     //mss
+    - menu bar (game, options, help)                              //mss nog help
+    - legende maken
+
+- persistence
+    - javadoc
+
+- properties
+    - vertalingen (nederlands, frans)
+
+- utils
+    DONE
+

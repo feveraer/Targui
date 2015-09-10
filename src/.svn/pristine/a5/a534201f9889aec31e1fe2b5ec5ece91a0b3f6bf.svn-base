@@ -1,0 +1,86 @@
+package gui;
+
+import domain.DomainController;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+
+/**
+ *
+ * @author Frederic
+ */
+public class PlayersJPanel extends JPanel implements ChangeListener {
+    
+    private JScrollPane scrPlayers;
+    private JTextArea txaPlayers;
+    private JButton btnEditPlayer;
+    private DomainController dc;
+
+    public PlayersJPanel(DomainController dc) {
+        this.dc = dc;
+        initComponents();
+        dc.addRepoChangeListener(this);
+    }
+
+    private void initComponents() {
+        scrPlayers = new JScrollPane();
+        txaPlayers = new JTextArea();
+        txaPlayers.setText(getAllPlayersText());
+        txaPlayers.setEditable(false);
+        txaPlayers.setColumns(30);
+        txaPlayers.setRows(5);
+        scrPlayers.setViewportView(txaPlayers);
+        
+        btnEditPlayer = new JButton("Edit player");
+        btnEditPlayer.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                btnEditPlayerActionPerformed();
+            }
+        });
+        
+        setLayout(new FlowLayout());
+        add(scrPlayers);
+        add(btnEditPlayer);
+        setVisible(true);
+    }
+   
+    private String getAllPlayersText() {
+        String[][] allPlayers = dc.getPlayers();
+        String s = "";
+        for (int i = 0; i < dc.getPlayers().length; i++) {
+            s += getPlayerInfo(allPlayers[i]);
+        }
+        
+        return s;
+    }
+    
+    private String getPlayerInfo(String[] p) {
+        if (p[0] == null) {
+            return "";
+        }
+        return String.format("NAME: %-10s"
+                + "COLOR: %-10s"
+                + "SECTOR: %-3d"
+                + "SILVER: %-3s\n", p[0], p[1], Integer.parseInt(p[2])+1, p[3]);
+    }
+    
+    private void btnEditPlayerActionPerformed() {
+        new EditPlayerJFrame(dc);
+    }
+    
+    @Override
+    public void stateChanged(ChangeEvent e) {
+        txaPlayers.setText(getAllPlayersText());
+    }
+}

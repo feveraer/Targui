@@ -1,0 +1,98 @@
+package ui;
+
+import java.util.Scanner;
+import domain.DomainController;
+import java.util.InputMismatchException;
+import java.util.List;
+
+/**
+ *
+ * @author Jonas
+ */
+public class UseCase4 {
+
+    public static void main(String[] args) {
+        Scanner input = new Scanner(System.in);
+        DomainController dc = new DomainController();
+        UseCase1 uc1 = new UseCase1();
+        UseCase2 uc2 = new UseCase2();
+        UseCase3 uc3 = new UseCase3();
+        UseCase4 uc4 = new UseCase4();
+        boolean[] geldig = new boolean[4];
+        
+        uc1.showSectors(dc);
+
+        uc2.createPredefinedPlayers(dc);
+        
+        uc1.showPlayers(dc);
+        
+        
+        
+  //Use case 2
+        
+        uc2.populateBoard(dc);
+        uc2.addGamersToGame(dc, uc2);
+        
+        
+        
+//Show populated board
+        uc2.showBoard(dc);
+        
+        //placePredefinedsettlements
+        
+        uc3.placePredefinedSettlements(dc, uc2);
+
+        uc2.showBoard(dc);
+        
+//Use Case 3 Begin  !!Nog problemen met InputMismatchException
+        
+        System.out.print("\n\n\n");
+        
+        
+        uc3.enterNumberOfRounds(dc, input);
+        
+
+        do
+        {
+            System.out.print("Next round? Enter Y: ");
+            String next = input.next();
+            next.toLowerCase();
+            if(next.charAt(0) == 'y'|| next.isEmpty())
+            {
+                String[] turn = dc.getNextTurn();
+                System.out.printf("\nRound %d\nTurn %d of %d\n",
+                    dc.getCurrentRoundNumber(),
+                    dc.getCurrentTurnNumber(),
+                    dc.getNumberOfTurns());
+                
+                //UC4 noodlotskaart?
+                if(turn[0] == null)
+                    System.out.println(turn[1]);
+                else
+                    System.out.printf("It's %s's turn.\n", turn[0]);
+                
+                
+            //toon het spel
+                //onderdeel use case 4
+                uc2.showBoard(dc);
+        //onderdeel use case 4
+        if(dc.getCurrentTurnNumber() == dc.getNumberOfTurns())
+                {
+                    uc3.evaluateRound(dc, uc2);
+                }
+            }
+            else
+                System.exit(0);
+        }
+        while(dc.getVictors().isEmpty());
+        
+        uc3.showVictor(dc);
+        
+        //print board
+        uc2.showBoard(dc);
+        
+    }//einde main
+    
+    
+
+}

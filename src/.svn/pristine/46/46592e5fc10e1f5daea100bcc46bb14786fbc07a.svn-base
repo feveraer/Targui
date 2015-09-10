@@ -1,0 +1,136 @@
+package gui;
+
+import domain.DomainController;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import org.netbeans.lib.awtextra.AbsoluteConstraints;
+import org.netbeans.lib.awtextra.AbsoluteLayout;
+
+/**
+ *
+ * @author Frederic
+ */
+public class PlayersJFrame extends JFrame implements ChangeListener {
+
+    private JScrollPane scrPlayers;
+    private JTextArea txaPlayers;
+    private JButton btnAddPlayer;
+    private JButton btnEditPlayer;
+    private JButton btnRemovePlayer;
+    private DomainController dc;
+
+    public PlayersJFrame(DomainController dc) {
+        dc.addRepoChangeListener(this);
+        this.dc = dc;
+        initComponents();
+    }
+
+    private void initComponents() {
+        scrPlayers = new JScrollPane();
+        txaPlayers = new JTextArea();
+        txaPlayers.setText(getAllPlayersText());
+        txaPlayers.setEditable(false);
+        txaPlayers.setColumns(20);
+        txaPlayers.setRows(5);
+        scrPlayers.setViewportView(txaPlayers);
+
+        btnAddPlayer = new JButton("Add player");
+        btnAddPlayer.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                btnAddPlayerActionPerformed();
+            }
+        });
+        btnEditPlayer = new JButton("Edit player");
+        btnEditPlayer.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                btnEditPlayerActionPerformed();
+            }
+        });
+        btnRemovePlayer = new JButton("Remove player");
+        btnRemovePlayer.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                btnRemovePlayerActionPerformed();
+            }
+        });
+
+        setLayout(new AbsoluteLayout());
+        add(scrPlayers, new AbsoluteConstraints(40, 40, 440, 160));
+        add(btnAddPlayer, new AbsoluteConstraints(40, 230, -1, -1));
+        add(btnEditPlayer, new AbsoluteConstraints(140, 230, -1, -1));
+        add(btnRemovePlayer, new AbsoluteConstraints(240, 230, -1, -1));
+
+        setTitle("Targui demo - manage players");
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        setSize(550, 350);
+        setLocationRelativeTo(rootPane);
+        setVisible(true);
+    }
+
+    private void btnAddPlayerActionPerformed() {
+        boolean correctInput = false;
+        while (!correctInput) {
+            try {
+                String newPlayer = JOptionPane.showInputDialog("Enter a new player name");
+                if (newPlayer == null) {
+                    return;
+                }
+                dc.addPlayer(newPlayer);
+                correctInput = true;
+            } catch (IllegalArgumentException exp) {
+                JOptionPane.showMessageDialog(null, exp.getMessage(), "Incorrect input", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
+    private void btnEditPlayerActionPerformed() {
+        new EditPlayerJFrame(this, dc);
+    }
+
+    private void btnRemovePlayerActionPerformed() {
+        boolean correctInput = false;
+        while (!correctInput) {
+            try {
+                String playerToBeRemoved = JOptionPane.showInputDialog("Enter the player name to be removed");
+                if (playerToBeRemoved == null) {
+                    return;
+                }
+                dc.removePlayer(playerToBeRemoved);
+                correctInput = true;
+            } catch (IllegalArgumentException exp) {
+                JOptionPane.showMessageDialog(null, exp.getMessage(), "Incorrect input", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
+    private String getAllPlayersText() {
+        String[][] allPlayers = dc.getPlayers();
+        String s = "";
+        for (int i = 0; i < dc.getPlayers().length; i++) {
+            s += getPlayerInfo(allPlayers[i]);
+        }
+        
+        return s;
+    }
+    
+    private String getPlayerInfo(String[] p) {
+        return String.format("NAME: %-10s"
+                + "COLOR: %-10s"
+                + "SECTOR: %-3d"
+                + "SILVER: %-3s\n", p[0], p[1], Integer.parseInt(p[2])+1, p[3]);
+    }
+
+    @Override
+    public void stateChanged(ChangeEvent e) {
+        txaPlayers.setText(getAllPlayersText());
+    }
+}

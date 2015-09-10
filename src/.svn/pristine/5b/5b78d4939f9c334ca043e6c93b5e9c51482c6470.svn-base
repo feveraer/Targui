@@ -1,0 +1,92 @@
+package ui;
+
+import java.util.Scanner;
+import domain.DomainController;
+import java.util.InputMismatchException;
+import java.util.Locale;
+import java.util.ResourceBundle;
+
+/**
+ *
+ * @author Jonas
+ */
+public class UseCase1 {
+
+    public static void main(String[] args) {
+        Scanner input = new Scanner(System.in);
+        UseCase1 uc1 = new UseCase1();
+        DomainController dc = new DomainController();
+        ResourceBundle bundle = ResourceBundle.getBundle("properties/game");
+
+        
+        bundle = ResourceBundle.getBundle("properties/game", Locale.ENGLISH);
+
+        uc1.showSectors(dc);
+        uc1.createPlayers(input, dc);
+        uc1.showPlayers(dc);
+
+        
+
+    }//einde main
+
+    private void createPlayers(Scanner input, DomainController dc) {
+
+        boolean[] geldig = new boolean[4];
+
+        for (int i = 0; i < 4; i++) {
+
+            while (!geldig[i]) {
+                try {
+                    System.out.print("Enter Player " + (i + 1) + " name: ");
+                    String name = input.next();
+                    System.out.print("Choose your color: ");
+                    String color = input.next();
+                    System.out.print("Enter sector number (1 to 4): ");
+                    int sector = input.nextInt() - 1;
+                    dc.addPlayer(name, color, sector);
+                    geldig[i] = true;
+                } catch (IllegalArgumentException ex) {
+                    System.err.println(ex.getMessage());
+                    //System.err.flush();
+                } catch (InputMismatchException exp) {
+                    System.err.println("Enter a number from 1 to 4!");
+                    //System.err.flush();
+                }
+            }
+
+        }
+
+    }//einde methode
+    
+    public void showPlayers(DomainController dc)
+    {
+        String[][] players = dc.getPlayers();
+        for (int i = 0; i < players.length; i++) {
+            System.out.println("Player " + (i + 1) + ":");
+            System.out.println("Name: " + players[i][0]);
+            System.out.println("Color: " + players[i][1]);
+            System.out.println("Sector: " + players[i][2]);
+            System.out.println("Silver: " + players[i][3] + "\n");
+        }
+    }
+    
+    public void showSectors(DomainController dc)
+    {
+        int[][] sectors = dc.getSectors();
+
+        for (int i = 0; i < sectors.length; i++) {
+            for (int a = 0; a < sectors[i].length; a++) {
+                if (!(sectors[i][a] == -1)) {
+                    System.out.printf("%2s", (sectors[i][a] + 1));
+                } else {
+                    System.out.print("  ");
+                }
+
+            }
+            System.out.println("");
+
+        }
+    }
+}//einde klasse
+
+

@@ -1,0 +1,158 @@
+package ui;
+
+import java.util.Scanner;
+import domain.DomainController;
+import java.util.List;
+
+/**
+ *
+ * @author Jonas
+ */
+public class UseCase3 {
+
+    public static void main(String[] args) {
+        Scanner input = new Scanner(System.in);
+        DomainController dc = new DomainController();
+        UseCase1 uc1 = new UseCase1();
+        UseCase2 uc2 = new UseCase2();
+        UseCase3 uc3 = new UseCase3();
+        boolean[] geldig = new boolean[4];
+        
+
+        uc1.showSectors(dc);
+        
+        
+
+        uc2.createPredefinedPlayers(dc);
+        
+        
+        uc1.showPlayers(dc);
+  //Use case 2
+        
+        uc2.populateBoard(dc);
+        uc2.addGamersToGame(dc, uc2);
+        
+//Show populated board
+        uc2.showBoard(dc);
+        
+        //Request settlement position + insert settlement position
+        
+        uc3.placePredefinedSettlements(dc, uc2);
+
+        uc2.showBoard(dc);
+        
+//Use Case 3 Begin  !!Nog problemen met InputMismatchException
+        
+        System.out.print("\n\n\n");
+        uc3.enterNumberOfRounds(dc, input);
+        
+
+        do
+        {
+            uc3.requestNextRound(dc, input);
+                
+                if(dc.getCurrentTurnNumber() == dc.getNumberOfTurns())
+                {
+                    uc3.evaluateRound(dc, uc2);
+                }
+        }
+        while(dc.getVictors().isEmpty());
+        
+        uc3.showVictor(dc);
+        
+        
+        
+    }//einde main
+    
+    public void placePredefinedSettlements(DomainController dc, UseCase2 uc2)
+    {
+        String [] playerNames = uc2.getPlayerNames(dc);
+        
+           int xCoord = 0;
+        int yCoord = 0;
+        dc.placeSettlement(playerNames[0], xCoord, yCoord);
+        
+        xCoord = 0;
+        yCoord = 6;
+        dc.placeSettlement(playerNames[1], xCoord, yCoord);
+        
+        xCoord = 6;
+        yCoord = 0;
+        dc.placeSettlement(playerNames[2], xCoord, yCoord);
+        
+        xCoord = 6;
+        yCoord = 6;
+        dc.placeSettlement(playerNames[3], xCoord, yCoord);
+        
+        System.out.print("\n\n\n");
+    }//einde placePredefinedSettlement
+    
+    public void enterNumberOfRounds(DomainController dc, Scanner input)
+    {
+        boolean good = false;
+        while(!good)
+       {
+        try
+        {
+            System.out.print("Enter number of rounds (1-16):");
+            int rounds = Integer.parseInt(input.nextLine());
+            dc.setupRounds(rounds);
+            good = true;
+        }
+        catch(NumberFormatException nfe)
+        {
+            System.err.println("Enter a number from 1 to 16!");
+        }
+        catch(IllegalArgumentException e){e.getMessage();}
+       }
+        
+        System.out.println("Number of rounds: "+dc.getNumberOfRounds());
+    }//einde enterNumberOfRounds
+    
+    private void requestNextRound(DomainController dc, Scanner input)
+    {
+                dc.getNextTurn();
+                System.out.printf("\nRound %d\nTurn %d of %d\n",
+                    dc.getCurrentRoundNumber(),
+                    dc.getCurrentTurnNumber(),
+                    dc.getNumberOfTurns());
+
+    }//einde requestNextRound
+    
+    public void evaluateRound(DomainController dc, UseCase2 uc2)
+    {
+        int[] roundResult = dc.evaluateRound();
+        String[] playerNames = uc2.getPlayerNames(dc);
+        System.out.printf("\n%s gets %d Silver\n%s gets %d Silver\n%s gets %d Silver\n%s gets %d Silver\n\n",
+                playerNames[0], roundResult[0], playerNames[1], roundResult[1],
+                playerNames[2], roundResult[2], playerNames[3], roundResult[3]);
+    }//einde evaluateRound
+    
+    public void showVictor(DomainController dc)
+    {
+        List<String> victors = dc.getVictors();
+        int nrOfVictors = victors.size();
+        if (nrOfVictors > 0) {
+            switch (nrOfVictors) {
+                case 1:
+                    System.out.println(victors.get(0) + " is the winner! Congratulations!");
+                    break;
+                case 2:
+                    System.out.println(String.format("Tie game between %s and %s!", 
+                            victors.get(0), victors.get(1)));
+                    break;
+                case 3:
+                    System.out.println(String.format("Tie game between %s, %s and %s!", 
+                            victors.get(0), victors.get(1), victors.get(2)));
+                    break;
+                case 4:
+                    System.out.println("Tie game! Nobody won! Wasn't this a waste of time? :)");
+                    break;
+            }
+            
+        }
+        //Weergeven lijst met spelers die gewonnen hebben
+        System.out.println(dc.getVictors()+" = Victor(s)");
+    }//einde getVictor
+
+}

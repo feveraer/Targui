@@ -1,0 +1,111 @@
+package gui;
+
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import domain.DomainController;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.BorderFactory;
+import javax.swing.JOptionPane;
+import javax.swing.border.TitledBorder;
+import org.netbeans.lib.awtextra.AbsoluteConstraints;
+import org.netbeans.lib.awtextra.AbsoluteLayout;
+
+/**
+ *
+ * @author Frederic
+ */
+public class EditPlayerJPanel extends JPanel implements ChangeListener {
+
+    private JLabel lbl1;
+    private JLabel lbl2;
+    private JTextField txf1;
+    private JTextField txf2;
+    private final DomainController dc;
+    private PlayersJFrame playersFrame;
+
+    public EditPlayerJPanel(PlayersJFrame playersFrame, DomainController dc, String specifier, String lbl1, String lbl2) {
+        this.dc = dc;
+        this.playersFrame = playersFrame;
+        initComponents(specifier, lbl1, lbl2);
+    }
+
+    private void initComponents(final String specifier, String lbl1, String lbl2) {
+        TitledBorder title = BorderFactory.createTitledBorder(specifier);
+        setBorder(title);
+        this.lbl1 = new JLabel(lbl1);
+        this.lbl2 = new JLabel(lbl2);
+        txf1 = new JTextField();
+        txf2 = new JTextField();
+        txf2.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                txf2ActionPerformed(specifier);
+            }
+        });
+
+        setLayout(new AbsoluteLayout());
+        add(this.lbl1, new AbsoluteConstraints(80, 30, -1, -1));
+        add(txf1, new AbsoluteConstraints(140, 30, 190, -1));
+        add(this.lbl2, new AbsoluteConstraints(80, 70, -1, -1));
+        add(txf2, new AbsoluteConstraints(140, 70, 190, -1));
+        setVisible(true);
+    }
+
+    private void txf2ActionPerformed(String specifier) {
+        switch (specifier) {
+            case "Name":
+                try {
+                    dc.setPlayerName(txf1.getText(), txf2.getText());
+                } catch (IllegalArgumentException exp) {
+                    JOptionPane.showMessageDialog(null, exp.getMessage(), "Incorrect input", JOptionPane.ERROR_MESSAGE);
+                    txf1.setText("");
+                    txf2.setText("");
+                    txf1.requestFocus();
+                }
+                break;
+            case "Color":
+                try {
+                    dc.setPlayerColor(txf1.getText(), txf2.getText());
+                } catch (IllegalArgumentException exp) {
+                    JOptionPane.showMessageDialog(null, exp.getMessage(), "Incorrect input", JOptionPane.ERROR_MESSAGE);
+                    txf1.setText("");
+                    txf2.setText("");
+                    txf1.requestFocus();
+                }
+                break;
+            case "Sector":
+                try {
+                    dc.setPlayerSector(txf1.getText(), Integer.parseInt(txf2.getText()));
+                } catch (NumberFormatException exp) {
+                    JOptionPane.showMessageDialog(null, "Expected a number for sector", "Incorrect input", JOptionPane.ERROR_MESSAGE);
+                } catch (IllegalArgumentException exp) {
+                    JOptionPane.showMessageDialog(null, exp.getMessage(), "Incorrect input", JOptionPane.ERROR_MESSAGE);
+                    txf1.setText("");
+                    txf2.setText("");
+                    txf1.requestFocus();
+                }
+                break;
+            case "Silver":
+                try {
+                    dc.setPlayerSilver(txf1.getText(), Integer.parseInt(txf2.getText()));
+                } catch (NumberFormatException exp) {
+                    JOptionPane.showMessageDialog(null, "Expected a number for silver", "Incorrect input", JOptionPane.ERROR_MESSAGE);
+                } catch (IllegalArgumentException exp) {
+                    JOptionPane.showMessageDialog(null, exp.getMessage(), "Incorrect input", JOptionPane.ERROR_MESSAGE);
+                    txf1.setText("");
+                    txf2.setText("");
+                    txf1.requestFocus();
+                }
+                break;
+        }
+    }
+
+    @Override
+    public void stateChanged(ChangeEvent e) {
+        playersFrame.stateChanged(e);
+    }
+}

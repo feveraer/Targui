@@ -1,0 +1,76 @@
+package domein;
+
+/**
+ * Repository van alle spelers.
+ *
+ * Frederic Everaert
+ *
+ * @author Gilles Baert
+ * @author Jonas De Bruycker
+ * @author Sander De Quick
+ */
+public class SpelerRepository {
+
+    /**
+     *
+     */
+    public static final int MAX_PLAYERS = 4;
+    private final Speler[] spelers = new Speler[MAX_PLAYERS];
+
+    /**
+     * Maakt een nieuwe speler aan.
+     *
+     * @param naam Gewenste naam, geen nullstring. @see Speler
+     * @param kleur Gewenste kleur, moet bestaande kleur zijn. @see Kleuren
+     * @param sector Gewenste sector, moet bestaande sector zijn. @see Sector
+     */
+    public void maakSpelerAan(String naam, String kleur, Sector sector) {
+          // Controleer op correcte kleur.
+          boolean juisteKleur = false;
+          for (Spel.KLEUREN kl : Spel.KLEUREN.values()) {
+              if(kl.name().equals(kleur)) {
+                  juisteKleur = true;
+                  break;
+              }
+          }
+        if (!juisteKleur) {
+            throw new IllegalArgumentException("Gelieve een andere kleur op te geven.");
+        }
+
+        // Controleer op maximum aantal spelers.
+        if(spelers[MAX_PLAYERS - 1] != null) {
+            throw new UnsupportedOperationException("Maximum number of players (" + MAX_PLAYERS + ") reached.");
+        }
+        
+        for(Speler sp : spelers) {
+            // Controleer op unieke naam.
+            if(sp != null && sp.getNaam().equals(naam)) {
+                throw new IllegalArgumentException("Naam al in gebruik. Gelieve een andere naam op te geven.");
+            }
+            // Controleer op unieke kleur.
+            if(sp != null && sp.getKleur().equals(kleur)) {
+                throw new IllegalArgumentException("Kleur al in gebruik. Gelieve een andere kleur op te geven.");
+            }
+            // Controleer op unieke sector.
+            if(sp != null && sp.getSector().equals(sector)) {
+                throw new IllegalArgumentException("Sector al in gebruik. Gelieve een andere sector op te geven.");
+            }
+        }
+
+        // Voeg speler toe indien voorwaarden voldaan zijn.
+        for(Speler sp : spelers) {
+            if(sp == null) {
+                sp = new Speler(naam, kleur, sector);
+            }
+        }
+    }
+
+    /**
+     *
+     * @return Speler[]
+     */
+    public Speler[] getSpelers() {
+        return spelers;
+    }
+
+}

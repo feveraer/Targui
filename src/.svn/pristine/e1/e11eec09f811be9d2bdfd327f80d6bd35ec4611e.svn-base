@@ -1,0 +1,248 @@
+package ui;
+
+import java.util.Scanner;
+import domain.DomainController;
+import java.util.ResourceBundle;
+import javax.swing.text.html.HTML;
+
+/**
+ *
+ * @author Jonas
+ */
+public class UseCase5 {
+    
+    private ResourceBundle bundle;
+
+    public static void main(String[] args) {
+        Scanner input = new Scanner(System.in);
+        DomainController dc = new DomainController();
+        UseCase1 uc1 = new UseCase1();
+        UseCase2 uc2 = new UseCase2();
+        UseCase3 uc3 = new UseCase3();
+        UseCase4 uc4 = new UseCase4();
+        UseCase5 uc5 = new UseCase5();
+        boolean[] geldig = new boolean[4];
+        
+        uc1.setLanguage(input);
+        uc2.setBundle(uc1);
+        uc3.setBundle(uc1);
+        uc4.setBundle(uc1);
+        uc5.setBundle(uc1);
+        
+        uc1.showSectors(dc);
+        
+        uc2.createPredefinedPlayers(dc);
+        
+        uc1.showPlayers(dc);
+        
+  //Use case 2
+        
+        uc2.populateBoard(dc);
+        uc2.addGamersToGame(dc, uc2);
+        
+//Show populated board
+        uc2.showBoard(dc);
+        
+        //Request settlement position + insert settlement position
+        
+        uc3.placePredefinedSettlements(dc, uc2);
+
+        uc2.showBoard(dc);
+        
+//Use Case 3 Begin  
+        
+        System.out.print("\n\n\n");
+        uc3.enterNumberOfRounds(dc, input);
+        
+
+        do
+        {
+            uc4.requestNextRound();
+            String next = input.next();
+            if(next.toLowerCase().charAt(0) == 'y'|| next.isEmpty())
+            {
+                String[] turn = dc.getNextTurn();
+                uc4.showRoundDetails(dc);
+                
+                //UC4 noodlotskaart?
+                
+                if(turn[0] == null)
+                    uc4.showFortune(turn);
+                else
+                {
+                    uc4.showWhosTurn(turn);
+                    
+                    
+        
+                    uc2.showBoard(dc);
+                        
+                        // select + getAdjacentSquares
+                    boolean[] check = new boolean[4];
+                    int xCo=0, yCo=0, xTo=0, yTo=0, camels=0;
+                    int buyCamels=0;
+                    int[] coords = new int[2];
+                    
+                    while(!check[0])
+                    {
+                        coords = uc5.selectSquare(dc, check, input, turn);
+                    }
+                    
+                    
+                    int[][] adjecent = dc.getAdjacentSquares(coords[0], coords[1]);
+
+                    uc5.showAdjacentSquares(dc, adjecent);
+
+                    while(!check[1])
+                    {
+                        uc5.startMoveTo(dc, input, adjecent, check, xCo, yCo);
+                    }
+                    
+                             
+                        //Show board before buying camels
+                       uc2.showBoard(dc);
+                    
+                    
+                    while(!check[2])
+                    {
+                        uc5.startBuyCamels(dc, input, uc2, turn, check);
+                        
+                        
+                    }
+
+                    
+                    
+
+                }//end of 'else'
+                    
+                
+                
+            //toon het spel
+                //onderdeel use case 4
+        uc2.showBoard(dc);
+        
+        //onderdeel use case 4
+        if(dc.getCurrentTurnNumber() == dc.getNumberOfTurns())
+                {
+                    uc3.evaluateRound(dc, uc2);
+                }
+            }
+            else
+                System.exit(0);
+        }
+        while(dc.getVictors().isEmpty());
+        
+        uc3.showVictor(dc);
+        
+        //print board
+        uc2.showBoard(dc);
+        
+    }//einde main
+    
+    public void setBundle(UseCase1 uc1) {
+        bundle = uc1.getBundle();
+    }//einde setBundle
+    
+    
+    
+    public int[] selectSquare(DomainController dc, boolean[] check, Scanner input, String[] turn)
+    {
+        int[] coords = new int[2];
+        try {
+            String[][][] boardUpdate = dc.getBoard();
+
+            System.out.println(bundle.getString("ui.selectSquareC"));
+
+            System.out.print(bundle.getString("ui.xCoordinate") + " ");
+            int xCo = Integer.parseInt(input.nextLine()) - 1;
+            System.out.print(bundle.getString("ui.yCoordinate") + " ");
+            int yCo = Integer.parseInt(input.nextLine()) - 1;
+            coords[0] = xCo;
+            coords[1] = yCo;
+            
+            if (!boardUpdate[xCo][yCo][4].equals(turn[0])) {
+                System.err.println(bundle.getString("ui.notYours"));
+            } else {
+                check[0] = true;
+            }
+        } catch (NumberFormatException nfe) {
+            System.err.println(bundle.getString("ui.squareExp"));
+        }
+        return coords;
+    }//einde selectSquare
+    
+    
+    
+    public void showAdjacentSquares(DomainController dc, int[][] adjecent)
+    {
+        for (int i = 0; i < adjecent.length; i++) {
+            System.out.printf(bundle.getString("ui.adjacentCoord"), adjecent[i][0] + 1, adjecent[i][1] + 1);
+        }
+    }//einde showAdjacentSquares
+    
+    
+    
+    public void startMoveTo(DomainController dc, Scanner input, int[][] adjecent, boolean[] check, int xCo, int yCo)
+    {
+        try {
+            System.out.println(bundle.getString("ui.moveTo"));
+
+            System.out.print(bundle.getString("ui.xDestination") + " ");
+            int xTo = Integer.parseInt(input.nextLine()) - 1;
+            System.out.print(bundle.getString("ui.yDestination") + " ");
+            int yTo = Integer.parseInt(input.nextLine()) - 1;
+            System.out.print(bundle.getString("ui.amountCamels") + " ");
+            int camels = Integer.parseInt(input.nextLine());
+
+            for (int i = 0; i < adjecent.length; i++) {
+                if (adjecent[i][0] == xTo && adjecent[i][1] == yTo) {
+                    dc.move(xCo, yCo, xTo, yTo, camels);
+                    check[1] = true;
+                    break;
+                }
+
+            }
+            if (!check[1]) {
+                System.err.println(bundle.getString("ui.notAdjacant"));
+            }
+
+        } catch (NumberFormatException nfe) {
+            System.err.println(bundle.getString("ui.false"));
+        } catch (IllegalArgumentException iae) {
+            System.err.println(bundle.getString(iae.getMessage()));
+        }
+    }//einde startMoveTo
+    
+    public void startBuyCamels(DomainController dc, Scanner input, UseCase2 uc2, String[] turn, boolean[] check)
+    {
+        try {
+            System.out.print(bundle.getString("ui.buyCamels") + " ");
+            int buyCamels = Integer.parseInt(input.nextLine());
+
+                            //toont gebieden waarop kamelen geplaatst kunnen worden
+            uc2.showBoard(dc);
+
+            //enter coordinates of place where you want to put your bought camels
+            System.out.println(bundle.getString("ui.placeBoughtCamels"));
+            System.out.print(bundle.getString("ui.xCoordinate") + " ");
+            int buyXCo = Integer.parseInt(input.nextLine()) - 1;
+            System.out.print(bundle.getString("ui.yCoordinate") + " ");
+            int buyYCo = Integer.parseInt(input.nextLine()) - 1;
+
+            //nieuw
+            String[][][] boardUpdate = dc.getBoard();
+
+            if (!boardUpdate[buyXCo][buyYCo][4].equals(turn[0])) {
+                System.err.println(bundle.getString("ui.notYours"));
+            } else {
+                dc.purchaseCamels(buyXCo, buyYCo, buyCamels);
+                check[2] = true;
+            }
+
+        } catch (NumberFormatException nfe) {
+            System.err.println(bundle.getString("ui.enterNumber"));
+        } catch (IllegalArgumentException iae) {
+            System.err.println(bundle.getString(iae.getMessage()));
+        }
+    }
+
+}

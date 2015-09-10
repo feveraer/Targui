@@ -1,0 +1,73 @@
+package domain;
+
+/**
+ * Represents one square.
+ *
+ * @author Frederic Everaert
+ * @author Gilles Baert
+ * @author Jonas De Bruycker
+ * @author Sander De Quick
+ */
+class Square {
+
+    public static final int NUM_OF_ATTR = 4;
+    private final Model model;
+    private Region region;
+    private Player player;
+    private int sector;
+    private int camels = 0;
+
+    public Square(Model model) {
+        this.model = model;
+    }
+
+    public Region getRegion() {
+        return region;
+    }
+
+    public void setRegion(Region region) {
+        if (!region.equals(this.region)) {
+            this.region = region;
+            model.fireStateChanged();
+        }
+    }
+
+    public Player getPlayer() {
+        return player;
+    }
+
+    public void setPlayer(Player player) {
+        if (!player.equals(this.player)) {
+            this.player = player;
+            model.fireStateChanged();
+        }
+    }
+
+    public int getSector() {
+        return sector;
+    }
+
+    public void setSector(int sector) {
+        if (sector < -1 || sector > Board.NUM_OF_SECTORS - 1) {
+            throw new IllegalArgumentException("Invalid sector");
+        }
+        if (sector != this.sector) {
+            this.sector = sector;
+            model.fireStateChanged();
+        }
+    }
+
+    public int getCamels() {
+        return camels;
+    }
+
+    public void setCamels(int camels) {
+        if (camels < 0 || camels > Integer.MAX_VALUE) {
+            this.camels = 0;
+        } else if (camels != this.camels) {
+            this.camels = camels;
+            model.fireStateChanged();
+        }
+    }
+
+}

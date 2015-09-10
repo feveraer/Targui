@@ -1,0 +1,252 @@
+package domain;
+
+/**
+ * Holds an array of several fortunce cars (methods).
+ *
+ * @author Frederic Everaert
+ * @author Gilles Baert
+ * @author Jonas De Bruycker
+ * @author Sander De Quick
+ */
+class Fortune {
+
+    public static final int NUM_OF_ACTIONS = 16;
+    private final Game game;
+    private Action[] actions;
+
+    public Fortune(Game game) {
+        this.game = game;
+        populateActions();
+    }
+
+    private void populateActions() {
+        final Board board = game.getBoard();
+        final Player[] players = game.getPlayers();
+        actions = new Action[NUM_OF_ACTIONS];
+        actions[0] = new Action() {
+            @Override
+            public String doAction() {
+                Square[][] squares = board.getSquares();
+                squares[squares.length / 2][squares.length / 2].setCamels(0);
+                return "The Haussa, a foreign enemy tribe, attacks the central salt-mine and steals all the camels.";
+            }
+        };
+        actions[1] = new Action() {
+            @Override
+            public String doAction() {
+                Square[][] squares = board.getSquares();
+                for (int i = 0; i < squares.length; i++) {
+                    for (int j = 0; j < squares[i].length; j++) {
+                        if (squares[i][j].getRegion().equals(Region.MOUNTAIN)) {
+                            game.setEconValueOfRound(i, j, 3);
+                        }
+                    }
+                }
+                return "Silver has been discovered in the mountains. The levy at the end of this round is therefore 3 for each mountain territory.";
+            }
+        };
+        actions[2] = new Action() {
+            @Override
+            public String doAction() {
+                Square[][] squares = board.getSquares();
+                for (Square[] sq : squares) {
+                    for (Square square : sq) {
+                        if (square.getRegion().equals(Region.SETTLEMENT)) {
+                            for (Player player : players) {
+                                if (square.getPlayer().getColor().equals(player.getColor())) {
+                                    player.setSilver(0);
+                                }
+                            }
+                        }
+                    }
+                }
+                return "An enemy tribe attacks all the settlements and steals the gold and silver. (Tribes without settlements retain their money.)";
+            }
+        };
+        actions[3] = new Action() {
+            @Override
+            public String doAction() {
+                Square[][] squares = board.getSquares();
+                for (Square[] sq : squares) {
+                    for (Square square : sq) {
+                        if (square.getRegion().equals(Region.GUELTA)) {
+                            square.setCamels(square.getCamels() - 10);
+                        }
+                    }
+                }
+                return "The water in the gueltas is poisoned. Of all the camels in each guelta, 10 die.";
+            }
+        };
+        actions[4] = new Action() {
+            @Override
+            public String doAction() {
+                Square[][] squares = board.getSquares();
+                for (int i = 0; i < squares.length; i++) {
+                    for (int j = 0; j < squares[i].length; j++) {
+                        if (squares[i][j].getRegion().equals(Region.ERG)) {
+                            game.setStratValueOfRound(i, j, 3);
+                        }
+                    }
+                }
+                return "Under influence of climatic conditions the characteristics of an erg have changed. The strategic value of each erg for the remaining turns of this round is equal to 3.";
+            }
+        };
+        actions[5] = new Action() {
+            @Override
+            public String doAction() {
+                Square[][] squares = board.getSquares();
+                for (Square[] sq : squares) {
+                    for (Square square : sq) {
+                        if (square.getRegion().equals(Region.GUELTA)) {
+                            square.setCamels(square.getCamels() + 5);
+                        }
+                    }
+                }
+                return "It is spring. 5 camels are born in each guelta.";
+            }
+        };
+        actions[6] = new Action() {
+            @Override
+            public String doAction() {
+                Square[][] squares = board.getSquares();
+                for (Square[] sq : squares) {
+                    for (Square square : sq) {
+                        if (square.getRegion().equals(Region.RAG)) {
+                            square.setCamels(square.getCamels() - 5);
+                        }
+                    }
+                }
+                return "Following heavy rainfall. 5 camels drown in each rag.";
+            }
+        };
+        actions[7] = new Action() {
+            @Override
+            public String doAction() {
+                Square[][] squares = board.getSquares();
+                for (Square[] sq : squares) {
+                    for (Square square : sq) {
+                        if (square.getCamels() > 0) {
+                            square.setCamels(square.getCamels() - 1);
+                        }
+                    }
+                }
+                return "An enemy tribe attacks the entire area. In each territory one camel is killed.";
+            }
+        };
+        actions[8] = new Action() {
+            @Override
+            public String doAction() {
+                Square[][] squares = board.getSquares();
+                for (Square[] sq : squares) {
+                    for (Square square : sq) {
+                        if (square.getRegion().equals(Region.SETTLEMENT)) {
+                            square.setCamels(square.getCamels() / 2);
+                        }
+                    }
+                }
+                return "Camel plague breaks out. Half of all the camels in the settlements die (subtract 1 before dividing uneven numbers).";
+            }
+        };
+        actions[9] = new Action() {
+            @Override
+            public String doAction() {
+                for (Player player : players) {
+                    player.setSilver(player.getSilver() + 10);
+                }
+                return "A large caravan is attacked jointly by all the tribes. Each tribe receives 10 pieces of silver.";
+            }
+        };
+        actions[10] = new Action() {
+            @Override
+            public String doAction() {
+                Square[][] squares = board.getSquares();
+                for (Square[] sq : squares) {
+                    for (Square square : sq) {
+                        if (square.getRegion().equals(Region.GUELTA)) {
+                            if (square.getCamels() >= 15) {
+                                square.setCamels(15);
+                            }
+                        }
+                    }
+                }
+                return "There is drought in the Sahara. There is only enough water in each guelta for 15 camels.";
+            }
+        };
+        actions[11] = new Action() {
+            @Override
+            public String doAction() {
+                Square[][] squares = board.getSquares();
+                for (Square[] sq : squares) {
+                    for (Square square : sq) {
+                        if (square.getRegion().equals(Region.ERG)) {
+                            square.setCamels(square.getCamels() - 3);
+                        }
+                    }
+                }
+                return "Heavy sandstorms sweep the Sahara. Three camels from each erg get lost.";
+            }
+        };
+        actions[12] = new Action() {
+            @Override
+            public String doAction() {
+                Square[][] squares = board.getSquares();
+                for (Square[] sq : squares) {
+                    for (Square square : sq) {
+                        if (square.getRegion().equals(Region.SETTLEMENT) && square.getPlayer().getName().equals(players[0].getName())) {
+                            square.setCamels(square.getCamels() + 10);
+                        }
+                    }
+                }
+                return "The Kel Ress (player 1) receives important visitors and a gift: 10 camels on the settlement.";
+            }
+        };
+        actions[13] = new Action() {
+            @Override
+            public String doAction() {
+                Square[][] squares = board.getSquares();
+                for (Square[] sq : squares) {
+                    for (Square square : sq) {
+                        if (square.getRegion().equals(Region.SETTLEMENT) && square.getPlayer().getName().equals(players[1].getName())) {
+                            square.setCamels(square.getCamels() + 10);
+                        }
+                    }
+                }
+                return "The Kel Ilbakan (player 2) receives important visitors and a gift: 10 camels on the settlement.";
+            }
+        };
+        actions[14] = new Action() {
+            @Override
+            public String doAction() {
+                Square[][] squares = board.getSquares();
+                for (Square[] sq : squares) {
+                    for (Square square : sq) {
+                        if (square.getRegion().equals(Region.SETTLEMENT) && square.getPlayer().getName().equals(players[2].getName())) {
+                            square.setCamels(square.getCamels() + 10);
+                        }
+                    }
+                }
+                return "The Kel Ahaggar (player 3) receives important visitors and a gift: 10 camels on the settlement.";
+            }
+        };
+        actions[15] = new Action() {
+            @Override
+            public String doAction() {
+                Square[][] squares = board.getSquares();
+                for (Square[] sq : squares) {
+                    for (Square square : sq) {
+                        if (square.getRegion().equals(Region.SETTLEMENT) && square.getPlayer().getName().equals(players[3].getName())) {
+                            square.setCamels(square.getCamels() + 10);
+                        }
+                    }
+                }
+                return "The Kel Ajjer (player 4) receives important visitors and a gift: 10 camels on the settlement.";
+            }
+        };
+
+    }
+
+    public Action[] getActions() {
+        return actions;
+    }
+
+}

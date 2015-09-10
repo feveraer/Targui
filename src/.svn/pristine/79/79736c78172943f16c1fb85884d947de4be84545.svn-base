@@ -1,0 +1,49 @@
+package domain;
+
+/**
+ * Represents one complete game.
+ *
+ * @author Frederic Everaert
+ * @author Gilles Baert
+ * @author Jonas De Bruycker
+ * @author Sander De Quick
+ */
+class Game extends Model {
+
+    public static final int MAX_PLAYERS = 4;
+    public static final int MAX_ROUNDS = 16;
+    private final Player[] players;
+    private final Board board = new Board(this);
+    private Round round;
+    private int numberOfRounds;
+    private int currentRound = 0;
+    private Fortune destiny;
+
+    public Game(Player[] players, int numberOfRounds) {
+        if (players.length != MAX_PLAYERS) {
+            throw new IllegalArgumentException("The game needs exactly " + MAX_PLAYERS + " players to start");
+        }
+        if (players.length != MAX_PLAYERS) {
+            throw new IllegalArgumentException("The game needs exactly " + MAX_PLAYERS + " unique colors to assign to players to start");
+        }
+        if (numberOfRounds < 0 || numberOfRounds > MAX_ROUNDS) {
+            throw new IllegalArgumentException("Requires an integer between 0 and " + MAX_ROUNDS);
+        }
+        this.numberOfRounds = numberOfRounds;
+        this.players = players;
+    }
+
+    public void placeSettlement(Player player, int x, int y) {
+        board.placeSettlement(player, x, y);
+    }
+
+
+    public Board getBoard() {
+        return board;
+    }
+    
+    public Player[] getPlayers() {
+        return players;
+    }
+
+}

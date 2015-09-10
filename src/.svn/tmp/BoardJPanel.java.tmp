@@ -1,0 +1,494 @@
+package gui;
+
+import domain.DomainController;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.GridLayout;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.io.IOException;
+import java.lang.reflect.Field;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.imageio.ImageIO;
+import javax.swing.BorderFactory;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JToggleButton;
+import javax.swing.UIManager;
+import javax.swing.border.LineBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+
+/**
+ *
+ * @author Frederic
+ */
+public class BoardJPanel extends JPanel implements ChangeListener {
+
+    private final DomainController dc;
+    private GameJPanel pnlGame;
+    private JButton[][] btnSquares;
+    private final String[] imgStrings;
+    private final ImageIcon[] imgRegions;
+    private final ImageIcon[] imgRegionsDisabled;
+    private int settlementsPlaced;
+    private boolean settlementPlacementEnabled;
+    private boolean movingEnabled;
+    private boolean adjacentEnabled;
+    private boolean buyingCamelsEnabled;
+    private String playerToMove;
+    private int xFrom;
+    private int yFrom;
+    private String previousPlayer;
+
+    public BoardJPanel(DomainController dc, GameJPanel pnlGame) {
+        this.imgStrings = dc.getRegions();
+        this.dc = dc;
+        this.pnlGame = pnlGame;
+        initComponents();
+        imgRegions = new ImageIcon[imgStrings.length];
+        imgRegionsDisabled = new ImageIcon[imgStrings.length];
+        for (int i = 0; i < imgRegions.length; i++) {
+            try {
+                imgRegions[i] = new ImageIcon(ImageIO.read(getClass().getResource("../images/" + imgStrings[i].toLowerCase() + ".jpg")));
+                imgRegionsDisabled[i] = new ImageIcon(ImageIO.read(getClass().getResource("../images/" + imgStrings[i].toLowerCase() + "Disabled.jpg")));
+            } catch (IOException ex) {
+                Logger.getLogger(BoardJPanel.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }
+
+    private ImageIcon[] getImageIcons(String region) {
+        ImageIcon[] icons = new ImageIcon[2];
+        switch (region.toLowerCase()) {
+            case "saltmine":
+                icons[0] = imgRegions[0];
+                icons[1] = imgRegionsDisabled[0];
+                return icons;
+            case "settlement":
+                icons[0] = imgRegions[1];
+                icons[1] = imgRegionsDisabled[1];
+                return icons;
+            case "guelta":
+                icons[0] = imgRegions[2];
+                icons[1] = imgRegionsDisabled[2];
+                return icons;
+            case "erg":
+                icons[0] = imgRegions[3];
+                icons[1] = imgRegionsDisabled[3];
+                return icons;
+            case "mountain":
+                icons[0] = imgRegions[4];
+                icons[1] = imgRegionsDisabled[4];
+                return icons;
+            case "rag":
+                icons[0] = imgRegions[5];
+                icons[1] = imgRegionsDisabled[5];
+                return icons;
+            case "feshfesh":
+                icons[0] = imgRegions[6];
+                icons[1] = imgRegionsDisabled[6];
+                return icons;
+            case "saltlake":
+                icons[0] = imgRegions[7];
+                icons[1] = imgRegionsDisabled[7];
+                return icons;
+        }
+        return null;
+    }
+
+    public void registerAsListener() {
+        dc.addRepoChangeListener(this);
+        dc.addGameChangeListener(this);
+    }
+
+    public void setSquareMouseListeners() {
+        for (int i = 0; i < btnSquares.length; i++) {
+            for (int j = 0; j < btnSquares[i].length; j++) {
+                final int ii = i;
+                final int jj = j;
+                MouseAdapter mouseAdapter = new MouseAdapter() {
+                    @Override
+                    public void mouseEntered(MouseEvent e) {
+                        pnlGame.setBoardInfo(ii, jj);
+                    }
+
+                    @Override
+                    public void mouseExited(MouseEvent e) {
+                        pnlGame.setBoardInfo();
+                    }
+                };
+                btnSquares[i][j].addMouseListener(mouseAdapter);
+            }
+        }
+    }
+
+    private void initComponents() {
+        int[][] sectors = dc.getSectors();
+        btnSquares = new JButton[7][7];
+        setLayout(new GridLayout(7, 7));
+        setBorder(new LineBorder(Color.BLACK));
+
+        Insets buttonMargin = new Insets(0, 0, 0, 0);
+        for (int i = 0; i < btnSquares.length; i++) {
+            for (int j = 0; j < btnSquares[i].length; j++) {
+                JButton b = new JButton();
+                b.setMargin(buttonMargin);
+                b.setPreferredSize(new Dimension(90, 90));
+                //alternating background colors
+//                if ((i % 2 == 1 && j % 2 == 1) || (i % 2 == 0 && j % 2 == 0)) {
+//                    b.setBackground(new Color(255, 165, 0));
+//                } else {
+//                    b.setBackground(new Color(255, 140, 0));
+//                }
+                b.setBackground(new Color(240, 230, 140));
+                btnSquares[i][j] = b;
+                final int sqX = i;
+                final int sqY = j;
+                btnSquares[i][j].addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        btnSquareActionPerformed(sqX, sqY);
+                    }
+                });
+                if (sectors[i][j] == -1) {
+                    btnSquares[i][j].setText("");
+                } else {
+                    btnSquares[i][j].setText(Integer.toString(sectors[i][j] + 1));
+                }
+                add(btnSquares[i][j]);
+            }
+        }
+        setVisible(true);
+    }
+
+    private void setSquareProperties() {
+        String[][][] board = dc.getBoard();
+        int[][] sectors = dc.getSectors();
+
+        for (int i = 0; i < btnSquares.length; i++) {
+            for (int j = 0; j < btnSquares[i].length; j++) {
+                if (!board[i][j][0].isEmpty() && board[i][j][0].length() > 2) {
+                    ImageIcon[] icons = getImageIcons(board[i][j][0]);
+                    btnSquares[i][j].setText("");
+                    btnSquares[i][j].setIcon(icons[0]);
+                    btnSquares[i][j].setDisabledIcon(icons[1]);
+                    Color color;
+                    try {
+                        Field field = Class.forName("java.awt.Color").getField(board[i][j][5]);
+                        color = (Color) field.get(null);
+                    } catch (Exception e) { // Not defined, no player on square
+                        color = new Color(240, 230, 140);
+                    }
+                    btnSquares[i][j].setBackground(color);
+                    btnSquares[i][j].setBorder(null);
+                } else {
+                    if (sectors[i][j] == -1) {
+                        btnSquares[i][j].setText("");
+                    } else {
+                        btnSquares[i][j].setText(Integer.toString(sectors[i][j] + 1));
+                    }
+                    btnSquares[i][j].setIcon(null);
+                    btnSquares[i][j].setDisabledIcon(null);
+                    btnSquares[i][j].setBackground(new Color(240, 230, 140));
+                    btnSquares[i][j].setBorder(UIManager.getBorder("Button.border"));
+                }
+            }
+        }
+    }
+
+    public int getSettlementsPlaced() {
+        return settlementsPlaced;
+    }
+    
+    public void resetSettlementsPlaced() {
+        settlementsPlaced = 0;
+    }
+
+    public void setSettlementsEnabled(boolean flag) {
+        settlementPlacementEnabled = flag;
+        if (flag) {
+            showSector(settlementsPlaced);
+        }
+    }
+
+    public void setMovingEnabled(boolean flag) {
+        movingEnabled = flag;
+    }
+
+    public void setBuyingCamelsEnabled(boolean flag) {
+        buyingCamelsEnabled = flag;
+    }
+
+    public void setAdjacentEnabled(boolean flag) {
+        adjacentEnabled = flag;
+    }
+
+    private void showSector(int sector) {
+        String[][] players = dc.getPlayers();
+        int[][] sectors = dc.getSectors();
+        if (sector == 4) {
+            for (int i = 0; i < sectors.length; i++) {
+                for (int j = 0; j < sectors[i].length; j++) {
+                    btnSquares[i][j].setEnabled(true);
+                }
+            }
+        } else {
+            for (int i = 0; i < sectors.length; i++) {
+                for (int j = 0; j < sectors[i].length; j++) {
+                    if (Integer.parseInt(players[settlementsPlaced][2]) != sectors[i][j]) {
+                        btnSquares[i][j].setEnabled(false);
+                    } else {
+                        btnSquares[i][j].setEnabled(true);
+                    }
+                }
+            }
+        }
+    }
+
+    public void showPlayerSquaresWithCamels(String player) {
+        String[][][] board = dc.getBoard();
+        for (int i = 0; i < btnSquares.length; i++) {
+            for (int j = 0; j < btnSquares[i].length; j++) {
+                if (!board[i][j][4].equals(player) || Integer.parseInt(board[i][j][6]) < 1) {
+                    btnSquares[i][j].setEnabled(false);
+                }
+            }
+        }
+        playerToMove = player;
+    }
+
+    public void showPlayerSquares(String player) {
+        String[][][] board = dc.getBoard();
+        for (int i = 0; i < btnSquares.length; i++) {
+            for (int j = 0; j < btnSquares[i].length; j++) {
+                if (!board[i][j][4].equals(player)) {
+                    btnSquares[i][j].setEnabled(false);
+                }
+            }
+        }
+        playerToMove = player;
+    }
+
+    public void showAllSquares(boolean flag) {
+        for (int i = 0; i < btnSquares.length; i++) {
+            for (int j = 0; j < btnSquares[i].length; j++) {
+                btnSquares[i][j].setEnabled(flag);
+            }
+        }
+    }
+
+    private void showAdjacentSquares(int sqX, int sqY) {
+        showAllSquares(false);
+        int[][] adjacentSquares = dc.getAdjacentSquares(sqX, sqY);
+        for (int i = 0; i < adjacentSquares.length; i++) {
+            btnSquares[adjacentSquares[i][0]][adjacentSquares[i][1]].setEnabled(true);
+        }
+        xFrom = sqX;
+        yFrom = sqY;
+    }
+
+    private boolean isSquareTaken(int sqX, int sqY) {
+        String[][][] board = dc.getBoard();
+        if (board[sqX][sqY][4].isEmpty()) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    private String getPlayerOnSquare(int sqX, int sqY) {
+        String[][][] board = dc.getBoard();
+        return board[sqX][sqY][4];
+    }
+
+    private int getCamelsOnSquare(int sqX, int sqY) {
+        String[][][] board = dc.getBoard();
+        return Integer.parseInt(board[sqX][sqY][6]);
+    }
+
+    public void finalizeTurn(String[][] players) {
+        if (dc.getCurrentTurnNumber() == dc.getNumberOfTurns() && !pnlGame.isRoundFinalized(dc.getCurrentRoundNumber())) {
+            int[] roundEvaluation = dc.evaluateRound();
+            pnlGame.finalizeRound(dc.getCurrentRoundNumber());
+            String evaluationString = String.format("ROUND FINISHED\n"
+                    + "%s gets %d\n%s gets %d\n%s gets %d\n%s gets %d\n", players[0][0], roundEvaluation[0],
+                    players[1][0], roundEvaluation[1], players[2][0], roundEvaluation[2], players[3][0], roundEvaluation[3]);
+            JOptionPane.showMessageDialog(null, evaluationString);
+        }
+        //return possible victor
+<<<<<<< .mine
+        String[] victors = dc.getVictors();
+=======
+        String victor = dc.getVictors();
+>>>>>>> .r335
+        if (!victor.isEmpty()) {
+            pnlGame.btnPlayEnabled(false);
+            JOptionPane.showMessageDialog(null, victor + " is the winner! Congratulations!");
+        }
+    }
+
+    private void showEndTurnMessage(String player) {
+        JOptionPane.showMessageDialog(null, player + ", your turn has ended.");
+    }
+
+    private void btnSquareActionPerformed(int sqX, int sqY) {
+        String[][] players = dc.getPlayers();
+        if (settlementPlacementEnabled && settlementsPlaced < 4) {
+            try {
+                dc.placeSettlement(players[settlementsPlaced][0], sqX, sqY);
+                settlementsPlaced++;
+                showSector(settlementsPlaced);
+                if (settlementsPlaced == 4) {
+                    settlementPlacementEnabled = false;
+                    pnlGame.btnSetRoundsEnabled(true);
+                }
+            } catch (IllegalArgumentException exp) {
+                JOptionPane.showMessageDialog(null, exp.getMessage(), "Incorrect input", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+        if (buyingCamelsEnabled) {
+            buyingCamelsEnabled = false;
+            boolean correctNumber = false;
+            while (!correctNumber) {
+                String input = JOptionPane.showInputDialog(playerToMove + ", enter the number of camels you wish to buy: ");
+                if (input == null) {
+                    correctNumber = true;
+                } else {
+                    try {
+                        int numberOfCamelsToBuy = Integer.parseInt(input);
+                        dc.purchaseCamels(sqX, sqY, numberOfCamelsToBuy);
+                        correctNumber = true;
+                    } catch (NumberFormatException exp) {
+                        JOptionPane.showMessageDialog(null, "Enter a number!", "Incorrect input", JOptionPane.ERROR_MESSAGE);
+                    } catch (IllegalArgumentException exp) {
+                        JOptionPane.showMessageDialog(null, exp.getMessage(), "Incorrect input", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+            }
+            showAllSquares(true);
+            showEndTurnMessage(playerToMove);
+            finalizeTurn(players);
+        }
+        if (adjacentEnabled) {
+            adjacentEnabled = false;
+            String thisPlayer = getPlayerOnSquare(sqX, sqY);
+            boolean isSquareTakenByOtherPlayer = isSquareTaken(sqX, sqY) && !previousPlayer.equals(thisPlayer);
+            int endTurn = JOptionPane.NO_OPTION;
+            if (isSquareTakenByOtherPlayer) {
+                dc.initiateAttack(xFrom, yFrom, sqX, sqY);
+                int continueBattle = JOptionPane.NO_OPTION;
+                int[] battleStatus = null;
+                do {
+                    battleStatus = dc.attack();
+                    String battleMessage = "";
+                    switch (battleStatus[0]) {
+                        case -1:
+                            battleMessage = String.format("%s (the attacker) won the battle because %s (the defender) has no camels to defend his square.",
+                                    playerToMove, thisPlayer);
+                            break;
+                        case 0:
+                            battleMessage = String.format("%s (the attacker) rolled a %d, killed all remaining camels of %s and won the battle!",
+                                    playerToMove, battleStatus[1], thisPlayer);
+                            break;
+                        case 1:
+                            battleMessage = String.format("%s (the attacker) rolled a %d and killed %d camels of %s (the defender).\n"
+                                    + "%s rolled a %d, killed all remaining camels of %s and won the battle!\n"
+                                    + "%s has %d camels remaining",
+                                    playerToMove, battleStatus[1], battleStatus[2], thisPlayer,
+                                    thisPlayer, battleStatus[3], playerToMove, thisPlayer, getCamelsOnSquare(sqX, sqY));
+                            break;
+                        case 2:
+                            battleMessage = String.format("%s (the attacker) rolled a %d and killed %d camels of %s (the defender).\n"
+                                    + "%s rolled a %d and killed %d camels of %s.\n"
+                                    + "%s has %d camels remaining.\n%s has %d camels remaining.",
+                                    playerToMove, battleStatus[1], battleStatus[2], thisPlayer,
+                                    thisPlayer, battleStatus[3], battleStatus[4], playerToMove,
+                                    playerToMove, getCamelsOnSquare(xFrom, yFrom), thisPlayer, getCamelsOnSquare(sqX, sqY));
+                            break;
+                    }
+                    JOptionPane.showMessageDialog(null, battleMessage);
+                    if (battleStatus[0] == 0) {
+                        String victoryMessage = String.format("%s, you have %d camels remaining after the won battle.\n"
+                                + "How many camels do you want to move to the square you've just won?", playerToMove, getCamelsOnSquare(xFrom, yFrom));
+                        boolean correctNumber = false;
+                        while (!correctNumber) {
+                            String input = JOptionPane.showInputDialog(victoryMessage);
+                            if (input == null) {
+                                correctNumber = true;
+                            } else {
+                                try {
+                                    int camelsToMove = Integer.parseInt(input);
+                                    dc.moveCamelsAfterWonBattle(camelsToMove);
+                                    correctNumber = true;
+                                } catch (NumberFormatException exp) {
+                                    JOptionPane.showMessageDialog(null, "Enter a number!", "Incorrect input", JOptionPane.ERROR_MESSAGE);
+                                } catch (IllegalArgumentException exp) {
+                                    JOptionPane.showMessageDialog(null, exp.getMessage(), "Incorrect input", JOptionPane.ERROR_MESSAGE);
+                                }
+                            }
+                        }
+                    }
+                    if (battleStatus[0] == 2) {
+                        continueBattle = JOptionPane.showConfirmDialog(null, playerToMove + ", do you want to continue the battle?", "Continue", JOptionPane.YES_NO_OPTION);
+                    }
+                } while (continueBattle == JOptionPane.YES_OPTION && battleStatus[0] == 2);
+            } else {
+                boolean correctNumber = false;
+                while (!correctNumber) {
+                    String input = JOptionPane.showInputDialog(playerToMove + ", enter the number of camels you wish to move:");
+                    if (input == null) {
+                        endTurn = JOptionPane.showConfirmDialog(null, "Are you sure you want to end your turn?", "Cancel", JOptionPane.YES_NO_OPTION);
+                        if (endTurn == JOptionPane.YES_OPTION) {
+                            correctNumber = true;
+                        }
+                    } else {
+                        try {
+                            int numberOfCamelsToMove = Integer.parseInt(input);
+                            dc.move(xFrom, yFrom, sqX, sqY, numberOfCamelsToMove);
+                            correctNumber = true;
+                        } catch (NumberFormatException exp) {
+                            JOptionPane.showMessageDialog(null, "Enter a number", "Incorrect input", JOptionPane.ERROR_MESSAGE);
+                        } catch (IllegalArgumentException exp) {
+                            JOptionPane.showMessageDialog(null, exp.getMessage(), "Incorrect input", JOptionPane.ERROR_MESSAGE);
+                        }
+                    }
+                }
+            }
+            showAllSquares(true);
+            if (!isSquareTakenByOtherPlayer && endTurn == JOptionPane.NO_OPTION) {
+                int moreCamels = JOptionPane.showConfirmDialog(null, playerToMove + ", do you want to buy additional camels?", "Buy camels", JOptionPane.YES_NO_OPTION);
+                if (moreCamels == JOptionPane.YES_OPTION) {
+                    JOptionPane.showMessageDialog(null, "Choose the square where you want to place newly bought camels.");
+                    showPlayerSquares(playerToMove);
+                    buyingCamelsEnabled = true;
+                }
+            }
+            if (!buyingCamelsEnabled) {
+                showEndTurnMessage(playerToMove);
+                finalizeTurn(players);
+            };
+        }
+        if (movingEnabled) {
+            try {
+                movingEnabled = false;
+                previousPlayer = getPlayerOnSquare(sqX, sqY);
+                showAdjacentSquares(sqX, sqY);
+                adjacentEnabled = true;
+            } catch (IllegalArgumentException exp) {
+                JOptionPane.showMessageDialog(null, exp.getMessage(), "Incorrect square", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
+    @Override
+    public void stateChanged(ChangeEvent e) {
+        setSquareProperties();
+    }
+}

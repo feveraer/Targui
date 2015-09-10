@@ -1,0 +1,110 @@
+package domein;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Repository holding all players.
+ *
+ * @author Frederic Everaert
+ * @author Gilles Baert
+ * @author Jonas De Bruycker
+ * @author Sander De Quick
+ */
+public class PlayerRepository extends Model {
+
+    private final List<Player> players = new ArrayList<>();
+
+    public void addPlayer(String name) throws IllegalArgumentException {
+        if (checkDuplicateName(name)) {
+            throw new IllegalArgumentException("Player named '" + name + "' already exists");
+        }
+        players.add(new Player(name, this));
+        fireStateChanged();
+    }
+
+    public void removePlayer(String name) throws IllegalArgumentException {
+        for (Player p : players) {
+            if (p.getName().equals(name)) {
+                players.remove(p);
+                fireStateChanged();
+                return;
+            }
+        }
+        throw new IllegalArgumentException("Player with '" + name + "' not found");
+    }
+
+    public void setPlayerName(String oldName, String newName) throws IllegalArgumentException {
+        if (oldName.equals(newName)) {
+            return;
+        }
+        if (checkDuplicateName(newName)) {
+            throw new IllegalArgumentException("Player named '" + newName + "' already exists");
+        }
+        for (Player p : players) {
+            if (p.getName().equals(oldName)) {
+                p.setName(newName);
+                fireStateChanged();
+                return;
+            }
+        }
+        throw new IllegalArgumentException("Player named '" + oldName + "' not found");
+    }
+
+    public void setPlayerColor(String name, String color) throws IllegalArgumentException {
+        for (Player p : players) {
+            if (p.getName().equals(name)) {
+                if (p.getColor().equalsIgnoreCase(color)) {
+                    return;
+                }
+                    p.setColor(color);
+                    fireStateChanged();
+                    return;
+            }
+        }
+        throw new IllegalArgumentException("Player named '" + name + "' not found");
+    }
+
+    public void setPlayerSector(String name, int sector) {
+        for (Player p : players) {
+            if (p.getName().equals(name)) {
+                if (p.getSector() == sector) {
+                    return;
+                }
+                    p.setSector(sector);
+                    fireStateChanged();
+                    return;
+            }
+        }
+        throw new IllegalArgumentException("Player named '" + name + "' not found");
+    }
+    
+    public void setPlayerSilver(String name, int silver) {
+        for (Player p : players) {
+            if (p.getName().equals(name)) {
+                if (p.getSilver() == silver) {
+                    return;
+                }
+                    p.setSilver(silver);
+                    fireStateChanged();
+                    return;
+            } 
+        }
+        throw new IllegalArgumentException("Player named '" + name + "' not found");
+    }
+    
+
+    private boolean checkDuplicateName(String name) {
+        for (Player p : players) {
+            if (p.getName().equals(name)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public List<Player> getPlayers() {
+        return players;
+    }
+
+}

@@ -1,0 +1,8 @@
+DomainController - move()
+DomainController - purchaseCamels()
+DomainController - getSquaresByPlayer()
+DomainController - getAdjacentSquares()
+Game - cleanup()
+Game - fireStateChanged()
+Game - checks voor duplicate colors en sectors bij kiezen spelers + testen
+Gui game board

@@ -1,0 +1,19 @@
+package domein;
+
+/**
+ * Interface voor verscheidene vooraf bepaalde methodes die opgeroepen worden
+ * tijdens het spel aan de hand van noodlotskaarten.
+ *
+ * @author Frederic Everaert
+ * @author Gilles Baert
+ * @author Jonas De Bruycker
+ * @author Sander De Quick
+ */
+public interface Actie {
+
+    /**
+     * Wijzigt spelattributen.
+     */
+    String doeActie();
+    
+}

@@ -1,0 +1,138 @@
+package gui;
+
+import domein.DomainController;
+import domein.PlayerRepository;
+import java.awt.Font;
+import javax.swing.JOptionPane;
+import javax.swing.JTextArea;
+
+/**
+ * Test de use cases.
+ *
+ * @author Frederic Everaert
+ * @author Gilles Baert
+ * @author Jonas De Bruycker
+ * @author Sander De Quick
+ */
+public class ConsoleApplication {
+
+    DomainController dc;
+
+    public ConsoleApplication(DomainController dc) {
+
+        this.dc = dc;
+        dc.startNieuwSpel();
+        printSpelVoorOpvulling();
+
+        maakAlleSpelersAan();
+        printAlleSpelers();
+
+        dc.vulSpelbord();
+        printSpel();
+
+        plaatsNederzettingenAlleSpelers();
+        printSpel();
+
+    }
+
+    private void maakAlleSpelersAan() {
+        String naam;
+        String kleur;
+        int sector;
+        boolean[] juisteInvoer = {false, false, false, false};
+
+        for (int i = 0; i < PlayerRepository.MAX_PLAYERS; i++) {
+            while (!juisteInvoer[i]) {
+                try {
+                    naam = JOptionPane.showInputDialog(null, "Geef naam speler " + (i + 1));
+                    kleur = JOptionPane.showInputDialog(null, "Geef kleur speler " + (i + 1));
+                    sector = Integer.parseInt(JOptionPane.showInputDialog(null, "Geef sector speler " + (i + 1)));
+                    dc.addSpeler(naam, kleur.toUpperCase(), sector - 1);
+                    juisteInvoer[i] = true;
+                } catch (IllegalArgumentException exp) {
+                    JOptionPane.showMessageDialog(null, exp.getMessage(), "Fout!", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        }
+    }
+
+    /**
+     * Print 1 speler af naar stdout.
+     *
+     * @param speler
+     */
+    private void printSpeler(String[] speler) {
+        System.out.printf("SPELER: %s\n"
+                + "KLEUR: %s\n"
+                + "SECTOR: %s\n"
+                + "GELDSTKN: %s\n", speler[0], speler[1], speler[2], speler[3]);
+        System.out.println("=====================");
+    }
+
+    private void printAlleSpelers() {
+        String[][] alleSpelers = dc.getPlayers();
+        for (int i = 0; i < PlayerRepository.MAX_PLAYERS; i++) {
+            printSpeler(alleSpelers[i]);
+        }
+    }
+
+    /**
+     * Print het spelbord voor opvulling ervan.
+     */
+    private void printSpelVoorOpvulling() {
+        JTextArea tekstvak = new JTextArea();
+        tekstvak.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
+        String txt = "";
+        String[][][] spel = dc.geefSpel();
+        for (int i = 0; i < spel.length; i++) {
+            for (int j = 0; j < spel[i].length; j++) {
+                txt += String.format("[%2d]",
+                        Integer.parseInt(spel[i][j][0]) + 1);
+            }
+            txt += "\n";
+        }
+        tekstvak.setText(txt);
+        JOptionPane.showMessageDialog(null, tekstvak, "Targui", JOptionPane.PLAIN_MESSAGE);
+    }
+
+    /**
+     * Print het spelbord na opvulling ervan.
+     */
+    private void printSpel() {
+        JTextArea tekstvak = new JTextArea();
+        tekstvak.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
+        String txt = "";
+        String[][][] spel = dc.geefSpel();
+        for (int i = 0; i < spel.length; i++) {
+            for (int j = 0; j < spel[i].length; j++) {
+                txt += String.format("[%10s %2d %10s %5s]",
+                        spel[i][j][0],
+                        Integer.parseInt(spel[i][j][1]) + 1,
+                        spel[i][j][2],
+                        spel[i][j][3]);
+            }
+            txt += "\n";
+        }
+        tekstvak.setText(txt);
+        JOptionPane.showMessageDialog(null, tekstvak, "Targui", JOptionPane.PLAIN_MESSAGE);
+    }
+
+    private void plaatsNederzettingenAlleSpelers() {
+        int vakX;
+        int vakY;
+
+        boolean[] juisteInvoer = {false, false, false, false};
+        for (int i = 0; i < PlayerRepository.MAX_PLAYERS; i++) {
+            while (!juisteInvoer[i]) {
+                try {
+                    vakX = Integer.parseInt(JOptionPane.showInputDialog("Geef X waarde nederzetting, Speler " + (i + 1)));
+                    vakY = Integer.parseInt(JOptionPane.showInputDialog("Geef Y waarde nederzetting, Speler " + (i + 1)));
+                    dc.plaatsNederzetting(i, vakX, vakY);
+                    juisteInvoer[i] = true;
+                } catch (IllegalArgumentException exp) {
+                    JOptionPane.showMessageDialog(null, exp.getMessage(), "Fout!", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,117 @@
+package gui;
+
+import domain.DomainController;
+import java.awt.FlowLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+
+/**
+ *
+ * @author Frederic
+ */
+public class GameJFrame extends JFrame {
+
+    private JPanel pnlBoard;
+    private JButton btnNewBoard;
+    private JButton btnPlaceSettlement;
+    private DomainController dc;
+
+    public GameJFrame(final DomainController dc) {
+        this.dc = dc;
+        startNewGame();
+        String[] colors = dc.getColors();
+        int index = 0;
+        //TODO set players
+        dc.setPlayerColor("p1", "red");
+        dc.setPlayerSector("p1", 0);
+        
+        dc.setPlayerColor("p2", "blue");
+        dc.setPlayerSector("p2", 1);
+        
+        dc.setPlayerColor("p3", "green");
+        dc.setPlayerSector("p3", 2);
+        
+        dc.setPlayerColor("p4", "yellow");
+        dc.setPlayerSector("p4", 3);
+        
+        dc.addGamePlayer("p1");
+        dc.addGamePlayer("p2");
+        dc.addGamePlayer("p3");
+        dc.addGamePlayer("p4");
+        initComponents();
+    }
+
+    private void initComponents() {
+        pnlBoard = new BoardJPanel(dc);
+        btnNewBoard = new JButton("Initialize board");
+        btnNewBoard.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                btnNewBoardActionPerformed();
+            }
+        });
+        btnPlaceSettlement = new JButton("Place settlement");
+        btnPlaceSettlement.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                btnPlaceSettlementActionPerformed();
+            }
+        });
+
+        setLayout(new FlowLayout());
+        add(pnlBoard);
+        add(btnNewBoard);
+        add(btnPlaceSettlement);
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        setLocationByPlatform(true);
+        pack();
+        setVisible(true);
+    }
+
+    private void startNewGame() {
+        dc.newGame();
+    }
+
+    private void setPlayers() {
+
+    }
+
+    private void btnNewBoardActionPerformed() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    dc.populateBoard();
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(GameJFrame.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        }).start();
+    }
+    
+    private void btnPlaceSettlementActionPerformed() {
+        int vakX;
+        int vakY;
+        String[][] players = dc.getGamePlayers();
+        
+        boolean[] juisteInvoer = {false, false, false, false};
+        for (int i = 0; i < players.length; i++) {
+            while (!juisteInvoer[i]) {
+                try {
+                    vakX = Integer.parseInt(JOptionPane.showInputDialog("Enter X coordinate of settlement for '" + players[i][0] + "'"));
+                    vakY = Integer.parseInt(JOptionPane.showInputDialog("Enter Y coordinate of settlement for '" + players[i][0] + "'"));
+                    dc.placeSettlement(players[i][0], vakX, vakY);
+                    juisteInvoer[i] = true;
+                } catch (IllegalArgumentException exp) {
+                    JOptionPane.showMessageDialog(null, exp.getMessage(), "Incorrect input", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        }
+    }
+}

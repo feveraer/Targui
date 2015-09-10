@@ -1,0 +1,54 @@
+package domein;
+
+/**
+ * Respresenteert de verschillende gebiedskaarten en hun respectievelijke
+ * economische en strategische waarden.
+ *
+ * @author Frederic Everaert
+ * @author Gilles Baert
+ * @author Jonas De Bruycker
+ * @author Sander De Quick
+ */
+public enum Gebiedskaart {
+
+    ZOUTWINPLAATS(5, 5),
+    NEDERZETTING(4, 4),
+    GUELTA(3, 3),
+    ERG(1, 0),
+    BERG(0, 1),
+    REG(2, 0),
+    FECHEFECHE(0, 2),
+    ZOUTMEER(0, 0);
+
+    public static final int AANTAL_TYPES = 8;
+    private int econWaarde;
+    private final int STRATWAARDE;
+
+    Gebiedskaart(int econWaarde, int stratWaarde) {
+        this.econWaarde = econWaarde;
+        STRATWAARDE = stratWaarde;
+    }
+    
+    /**
+     * 
+     * @param econWaarde
+     */
+    public void setEconWaarde(int econWaarde) {
+        this.econWaarde = econWaarde;
+    }
+
+    /**
+     * @return economische waarde van gebiedskaart
+     */
+    public int getEconWaarde() {
+        return econWaarde;
+    }
+
+    /**
+     * @return strategische waarde van gebiedskaart
+     */
+    public int getSTRATWAARDE() {
+        return STRATWAARDE;
+    }
+
+}

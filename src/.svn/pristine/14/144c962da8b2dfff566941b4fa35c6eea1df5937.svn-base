@@ -1,0 +1,17 @@
+package domein;
+
+public class Berg extends Gebiedskaart {
+    
+    private final int economischeWaarde = 0;
+    private final int strategischeWaarde = 1;
+
+    public int getEconomischeWaarde() {
+        return economischeWaarde;
+    }
+
+    public int getStrategischeWaarde() {
+        return strategischeWaarde;
+    }
+    
+    
+}

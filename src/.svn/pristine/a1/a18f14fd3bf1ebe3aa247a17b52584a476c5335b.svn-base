@@ -1,0 +1,23 @@
+package domein;
+
+public class Spel {
+
+    private final Spelbord spelbord = new Spelbord();
+
+    public Vak[][] geefSpel() {
+        return spelbord.geefSpelbord();
+    }
+
+    public Spelbord getSpelbord() {
+        return spelbord;
+    }
+
+    public void vulSpelbord() {
+        spelbord.vulSpelbord();
+    }
+
+    public void plaatsNederzetting(Speler speler, int vakX, int vakY) {
+        spelbord.plaatsNederzetting(speler, vakX, vakY);
+    }
+
+}

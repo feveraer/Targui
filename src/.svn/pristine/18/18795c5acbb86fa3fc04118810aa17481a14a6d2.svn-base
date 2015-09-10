@@ -1,0 +1,233 @@
+package domain;
+
+import java.util.List;
+
+/**
+ * Holds an array of several fortunce cards (methods).
+ *
+ * @author Frederic Everaert
+ * @author Gilles Baert
+ * @author Jonas De Bruycker
+ * @author Sander De Quick
+ */
+class FortuneRepository {
+
+    /**
+     * Number of fortune cards (Default 16).
+     */
+    public static final int NUM_OF_FORTUNES = Game.MAX_ROUNDS;
+    private final Game GAME;
+    private Fortune[] fortunes;
+
+    /**
+     *
+     * @param game
+     */
+    public FortuneRepository(Game game) {
+        this.GAME = game;
+        populateFortunes();
+    }
+
+    /**
+     * Maps every fortune card to a unique action and description.
+     */
+    private void populateFortunes() {
+        final Board board = GAME.getBoard();
+        final Player[] players = GAME.getPlayers();
+        Action[] actions = new Action[NUM_OF_FORTUNES];
+        actions[0] = new Action() {
+            @Override
+            public String doAction() {
+                Square[][] squares = board.getSquares();
+                squares[squares.length / 2][squares.length / 2].setCamels(0);
+                return "fort.1";
+            }
+        };
+        actions[1] = new Action() {
+            @Override
+            public String doAction() {
+                Region.MOUNTAIN.setCurrentEconValue(3);
+                return "fort.2";
+            }
+        };
+        actions[2] = new Action() {
+            @Override
+            public String doAction() {
+                List<Square> squares = board.getSquaresByRegion(Region.SETTLEMENT);
+                for (Player player : players) {
+                    for (Square square : squares) {
+                        if (square.getPlayer().equals(player)) {
+                            player.setSilver(0);
+                        }
+                    }
+                }
+                return "fort.3";
+            }
+        };
+        actions[3] = new Action() {
+            @Override
+            public String doAction() {
+                List<Square> squares = board.getSquaresByRegion(Region.GUELTA);
+                for (Square sq : squares) {
+                    sq.setCamels(sq.getCamels() - 10);
+                }
+                return "fort.4";
+            }
+        };
+        actions[4] = new Action() {
+            @Override
+            public String doAction() {
+                Region.ERG.setCurrentStratValue(3);
+                return "fort.5";
+            }
+        };
+        actions[5] = new Action() {
+            @Override
+            public String doAction() {
+                List<Square> squares = board.getSquaresByRegion(Region.GUELTA);
+                for (Square sq : squares) {
+                    sq.setCamels(sq.getCamels() + 5);
+                }
+                return "fort.6";
+            }
+        };
+        actions[6] = new Action() {
+            @Override
+            public String doAction() {
+                List<Square> squares = board.getSquaresByRegion(Region.RAG);
+                for (Square sq : squares) {
+                    sq.setCamels(sq.getCamels() - 5);
+                }
+                return "fort.7";
+            }
+        };
+        actions[7] = new Action() {
+            @Override
+            public String doAction() {
+                Square[][] squares = board.getSquares();
+                for (Square[] sq : squares) {
+                    for (Square square : sq) {
+                        if (square.getCamels() > 0) {
+                            square.setCamels(square.getCamels() - 1);
+                        }
+                    }
+                }
+                return "fort.8";
+            }
+        };
+        actions[8] = new Action() {
+            @Override
+            public String doAction() {
+                List<Square> squares = board.getSquaresByRegion(Region.SETTLEMENT);
+                for (Square sq : squares) {
+                    sq.setCamels(sq.getCamels() / 2);
+                }
+                return "fort.9";
+            }
+        };
+        actions[9] = new Action() {
+            @Override
+            public String doAction() {
+                for (Player player : players) {
+                    player.setSilver(player.getSilver() + 10);
+                }
+                return "fort.10";
+            }
+        };
+        actions[10] = new Action() {
+            @Override
+            public String doAction() {
+                List<Square> squares = board.getSquaresByRegion(Region.GUELTA);
+                for (Square sq : squares) {
+                    if (sq.getCamels() >= 15) {
+                        sq.setCamels(15);
+                    }
+                }
+                return "fort.11";
+            }
+        };
+        actions[11] = new Action() {
+            @Override
+            public String doAction() {
+                List<Square> squares = board.getSquaresByRegion(Region.ERG);
+                for (Square sq : squares) {
+                    sq.setCamels(sq.getCamels() - 3);
+                }
+                return "fort.12";
+            }
+        };
+        actions[12] = new Action() {
+            @Override
+            public String doAction() {
+                List<Square> squares = board.getSquaresByRegion(Region.SETTLEMENT);
+                for (Square sq : squares) {
+                    if (sq.getPlayer().equals(players[0])) {
+                        sq.setCamels(sq.getCamels() + 10);
+                    }
+                }
+                return "fort.13";
+            }
+        };
+        actions[13] = new Action() {
+            @Override
+            public String doAction() {
+                List<Square> squares = board.getSquaresByRegion(Region.SETTLEMENT);
+                for (Square sq : squares) {
+                    if (sq.getPlayer().equals(players[1])) {
+                        sq.setCamels(sq.getCamels() + 10);
+                    }
+                }
+                return "fort.14";
+            }
+        };
+        actions[14] = new Action() {
+            @Override
+            public String doAction() {
+                List<Square> squares = board.getSquaresByRegion(Region.SETTLEMENT);
+                for (Square sq : squares) {
+                    if (sq.getPlayer().equals(players[2])) {
+                        sq.setCamels(sq.getCamels() + 10);
+                    }
+                }
+                return "fort.15";
+            }
+        };
+        actions[15] = new Action() {
+            @Override
+            public String doAction() {
+                List<Square> squares = board.getSquaresByRegion(Region.SETTLEMENT);
+                for (Square sq : squares) {
+                    if (sq.getPlayer().equals(players[3])) {
+                        sq.setCamels(sq.getCamels() + 10);
+                    }
+                }
+                return "fort.16";
+            }
+        };
+
+        fortunes = new Fortune[NUM_OF_FORTUNES];
+        for (int i = 0; i < NUM_OF_FORTUNES; i++) {
+            fortunes[i] = new Fortune(i, actions[i]);
+        }
+
+    }
+
+    /**
+     * Returns all fortune cards.
+     *
+     * @return
+     */
+    public Fortune[] getFortunes() {
+        return fortunes;
+    }
+
+    /**
+     * Returns a fortune card by ID.
+     *
+     * @param id
+     * @return
+     */
+    public Fortune getFortune(int id) {
+        return fortunes[id];
+    }
+}

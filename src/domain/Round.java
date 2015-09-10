@@ -1,0 +1,160 @@
+package domain;
+
+import java.util.Arrays;
+import java.util.Random;
+import utils.Collections;
+
+/**
+ * Represents one round.
+ *
+ * @author Frederic Everaert
+ * @author Gilles Baert
+ * @author Jonas De Bruycker
+ * @author Sander De Quick
+ */
+class Round {
+
+    private Turn[] turns;
+    private int currentTurnNumber = 0;
+    private Turn currentTurn;
+    private int[] evaluationPerPlayer;
+    private final Player[] players;
+    private final Fortune fortune;
+
+    /**
+     * Creates a new Round and populates it with a series of turns.
+     *
+     * @param players
+     * @param fortune
+     */
+    public Round(Player[] players, Fortune fortune) {
+        this.players = players;
+        this.fortune = fortune;
+    }
+
+    /**
+     * Generates a random amount of turns for this round, dependant on a
+     * diceroll. For values between 1 and 5, the amount of turns generated
+     * equals [diceroll] * [amount_of_players] + 1. For when the diceroll equals
+     * 6, every player simply gets 2 consecutive turns in a random order.
+     * 
+     * @return diceroll
+     */
+    public int populateTurns() {
+        int group = 0;
+        Random rnd = new Random();
+        int diceroll = rnd.nextInt(6) + 1;
+        if (diceroll < 6) {
+            turns = new Turn[diceroll * Game.MAX_PLAYERS + 1];
+            group = 1;
+        } else if (diceroll == 6) {
+            turns = new Turn[2 * Game.MAX_PLAYERS + 1];
+            group = 2;
+        }
+        for (int i = 0; i < turns.length - 1; i++) {
+            if (group == 2) {
+                turns[i] = players[i / group];
+            } else {
+                turns[i] = players[i % Game.MAX_PLAYERS];
+            }
+        }
+        turns[turns.length - 1] = fortune;
+        if (group == 1) {
+            Collections.shuffle(turns, group);
+        } else { // Unable shuffle an array of 9 in a group of 2.
+            Turn[] playerTurns = Arrays.copyOfRange(turns, 0, turns.length - 1);
+            // Shuffle turns first.
+            Collections.shuffle(playerTurns, group);
+            // Turns are shuffled per 2 followed by a fortune card.
+            System.arraycopy(playerTurns, 0, turns, 0, turns.length - 1);
+            // Decide new index for fortune card.
+            int indexFortune = rnd.nextInt(5) * 2;
+            // If index is 8, turn array is okay.
+            if (indexFortune < 8) {
+                // Save fortune card first, so we don't lose it upon shuffling.
+                Turn fortuneCopy = turns[turns.length - 1];
+                // Clear a space in the array for the fortune card.
+                for (int i = turns.length - 1; i > indexFortune; i--) {
+                    turns[i] = turns[i - 1];
+                }
+                // Inject fortune card.
+                turns[indexFortune] = fortuneCopy;
+            }
+        }
+        return diceroll;
+    }
+
+    /**
+     * Evaluates the current round.
+     *
+     * @param squares
+     * @return
+     */
+    public int[] evaluate(Square[][] squares) {
+        evaluationPerPlayer = new int[Game.MAX_PLAYERS];
+        boolean[] hasSettlement = new boolean[Game.MAX_PLAYERS];
+        for (int pIndex = 0; pIndex < evaluationPerPlayer.length; pIndex++) {
+            hasSettlement[pIndex] = false;
+            for (Square[] square : squares) {
+                for (Square sq : square) {
+                    // Only give silver to players who own their settlement.
+                    if (sq.getRegion().equals(Region.SETTLEMENT) && sq.getPlayer().getName().equals(players[pIndex].getName()) && sq.getSector() == sq.getPlayer().getSector()) {
+                        hasSettlement[pIndex] = true;
+                    }
+                    try {
+                        if (sq.getPlayer().equals(players[pIndex])) {
+                            evaluationPerPlayer[pIndex] += sq.getRegion().getCurrentEconValue();
+                        }
+                    }catch (NullPointerException exp) {
+                        // No player on current square, do nothing.
+                    }
+                }
+            }
+            if (!hasSettlement[pIndex]) {
+                evaluationPerPlayer[pIndex] = 0;
+            }
+        }
+        for (int i = 0; i < Game.MAX_PLAYERS; i++) {
+            players[i].setSilver(players[i].getSilver() + evaluationPerPlayer[i]);
+        }
+        return evaluationPerPlayer;
+    }
+
+    /**
+     * Gets the current turn number.
+     *
+     * @return
+     */
+    public int getCurrentTurnNumber() {
+        return currentTurnNumber;
+    }
+
+    /**
+     * Returns the next turn.
+     *
+     * @return
+     */
+    public Turn getNextTurn() {
+        currentTurn = turns[currentTurnNumber];
+        currentTurnNumber++;
+        return currentTurn;
+    }
+
+    /**
+     * Returns the current turn.
+     *
+     * @return
+     */
+    public Turn getCurrentTurn() {
+        return currentTurn;
+    }
+
+    /**
+     * Returns the number of turns set.
+     *
+     * @return
+     */
+    public int getNumberOfTurns() {
+        return turns.length;
+    }
+}

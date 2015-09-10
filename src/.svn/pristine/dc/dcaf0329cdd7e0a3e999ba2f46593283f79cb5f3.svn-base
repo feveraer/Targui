@@ -1,0 +1,191 @@
+package ui;
+
+import java.util.Scanner;
+import domain.DomainController;
+import java.util.InputMismatchException;
+
+/**
+ *
+ * @author Jonas
+ */
+public class UseCase2 {
+
+    
+    
+    
+    public static void main(String[] args) {
+        final Scanner input = new Scanner(System.in);
+        DomainController dc = new DomainController();
+        UseCase1 uc1 = new UseCase1();
+        UseCase2 uc2 = new UseCase2();
+        boolean[] geldig = new boolean[4];
+        
+        int[][] sectors = dc.getSectors();
+        
+        for(int i = 0; i<sectors.length; i++){
+            for(int a = 0;a<sectors[i].length; a++){
+                if(!(sectors[i][a]==-1))
+                    System.out.printf("%2s",(sectors[i][a]+1));
+                else
+                    System.out.print("  ");
+                
+            }
+            System.out.println("");
+            
+        }
+        
+    uc2.createPredefinedPlayers(dc);
+ 
+    uc1.showPlayers(dc);
+        
+        
+  //Use case 2
+    uc2.populateBoard(dc);
+    
+    uc2.addGamersToGame(dc, uc2);
+        
+        
+//Show populated board
+        uc2.showBoard(dc);
+        
+        //Request settlement position + insert settlement position
+        
+        String[] playerNames = uc2.getPlayerNames(dc);
+        
+        uc2.pickSettlement(dc, uc2, input);
+        
+        uc2.showBoard(dc);
+        
+
+    }//Einde main
+    
+    public void createPredefinedPlayers(DomainController dc)
+    {
+        //player 1
+        String name = "a";
+        String color = "blue";
+        int sector = 0;
+        dc.addPlayer(name, color, sector);
+    
+        //player 2
+        name = "b";
+        color = "red";
+        sector = 1;
+        dc.addPlayer(name, color, sector);
+    
+        //player 3
+        name = "c";
+        color = "green";
+        sector = 2;
+        dc.addPlayer(name, color, sector);
+    
+        //player 4
+        name = "d";
+        color = "cyan";
+        sector = 3;
+        dc.addPlayer(name, color, sector);
+
+    }//einde createPredefinedPlayers
+    
+    
+    
+    public void addGamersToGame(DomainController dc, UseCase2 uc2) {
+        String[] playerNames = uc2.getPlayerNames(dc);
+        dc.addPlayersToGame(playerNames);
+    }//einde addGamersToGame
+
+    
+    
+    public String[] getPlayerNames(DomainController dc)
+    {
+        String[][] players = dc.getPlayers();
+        String[] playerNames = new String[players.length];
+
+        for (int i = 0; i < players.length; i++) {
+            playerNames[i] = players[i][0];
+        }
+        return playerNames;
+    }//einde getPlayerNames
+    
+    public void populateBoard(DomainController dc)
+    {
+        try
+        {
+        dc.populateBoard(0);
+        }
+        catch(InterruptedException iex)
+        {System.err.println("Something went terribly wrong, restart the game!");}
+    }
+    
+    private void pickSettlement(DomainController dc, UseCase2 uc2, Scanner input)
+    {
+        String[] playerNames = uc2.getPlayerNames(dc);
+        boolean[] good = new boolean[4];
+        for(int i = 0; i < playerNames.length; i++)
+        {
+            while(!good[i])
+            {
+                try
+                {
+                    System.out.println(playerNames[i]+", please select a square to replace with your settlement. (1-7)");
+                    System.out.print("Enter X-Coordinate: ");
+                    int xCoord = (input.nextInt()-1);
+                    System.out.print("Enter Y-Coordinate: ");
+                    int yCoord = (input.nextInt()-1);
+                    dc.placeSettlement(playerNames[i], xCoord, yCoord);
+                    good[i]=true;
+                }
+                catch(InputMismatchException ime)
+                {
+                    System.err.println("Pick a coordinate in your sector!");
+                }
+                catch(IndexOutOfBoundsException iob)
+                {
+                    System.err.println(iob.getMessage());
+                }
+                catch(UnsupportedOperationException uoe)
+                {
+                    System.err.println(uoe.getMessage());
+                }
+                catch(IllegalArgumentException iae)
+                {
+                    System.err.println("Pick a coordinate in your sector!");
+                }
+            }
+        }
+    }//einde pickSettlement
+    
+    public void showBoard(DomainController dc)
+    {
+        String[][][] board = dc.getBoard();
+        
+        for(int i = 0; i<board.length; i++)
+        {
+            for(int j = 0; j < board[i].length; j++)
+            {
+                //for(int k = 0; k < board[i][j].length; k++)
+                //{
+//                    System.out.printf("%20s",board[i][j][0]);
+//                    System.out.printf("%s",board[i][j][1]);
+//                    System.out.printf("%s",board[i][j][2]);
+//                    System.out.printf("%s",board[i][j][3]);
+                    
+                    System.out.printf("[%10s %2s %2s %2d %2s %5s %2s]",
+                        board[i][j][0],
+                        board[i][j][1],
+                        board[i][j][2],
+                        Integer.parseInt(board[i][j][3])+1,
+                        board[i][j][4],
+                        board[i][j][5],
+                        board[i][j][6]);
+                    
+                //}
+                System.out.print("  ");
+            }
+            System.out.print("\n");
+        }
+    }
+
+}//Einde klasse
+
+

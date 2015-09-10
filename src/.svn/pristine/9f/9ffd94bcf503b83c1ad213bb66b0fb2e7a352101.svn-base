@@ -1,0 +1,134 @@
+package domein;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+/**
+ * Representeert één volledig spel.
+ *
+ * @author Frederic Everaert
+ * @author Gilles Baert
+ * @author Jonas De Bruycker
+ * @author Sander De Quick
+ */
+public class Spel {
+
+    public static enum KLEUREN {
+
+        ROOD,
+        GEEL,
+        BLAUW,
+        GROEN;
+    }
+
+    private final Spelbord spelbord = new Spelbord();
+    private boolean spelbordGevuld = false;
+    private int aantalRonden;
+    private List<Integer> geschuddeNoodlotskaarten;
+
+    /**
+     * Configuratie van het spelbord.
+     */
+    public void vulSpelbord() {
+        spelbord.vulSpelbord();
+        spelbordGevuld = true;
+    }
+
+    /**
+     * Plaatst een gebiedskaart van het type nederzetting op een specifiek vak.
+     *
+     * @param speler Spelerobject
+     * @param vakX X-coördinaat van het gewenste vak
+     * @param vakY Y-coördinaat van het gewenste vak
+     */
+    public void plaatsNederzetting(Speler speler, int vakX, int vakY) {
+        spelbord.plaatsNederzetting(speler, vakX, vakY);
+    }
+
+    /**
+     * Legt het aantal ronden vast.
+     *
+     * @param aantalRonden
+     */
+    public void kiesAantalRonden(int aantalRonden) {
+        if (aantalRonden < 0 || aantalRonden > 16) {
+            throw new IllegalArgumentException("Gelieve een geldig aantal ronden op te geven");
+        } else {
+            this.aantalRonden = aantalRonden;
+        }
+    }
+
+    /**
+     * Bepaalt array van noodlotskaarten a.d.h.v. het aantal gekozen ronden. 
+     */
+    public void bepaalNoodlotskaarten() {
+        geschuddeNoodlotskaarten = new ArrayList<>();
+        for (int i = 0; i < aantalRonden; i++) {
+            geschuddeNoodlotskaarten.add(i);
+        }
+        Collections.shuffle(geschuddeNoodlotskaarten);
+    }
+
+    /**
+     * Bepaalt de soort noodlotskaart a.d.h.v. @param type.
+     * 
+     * @param type Soort noodlotskaart.
+     * @return String met uitleg over de soort noodlotskaart.
+     */
+    public String geefNoodlotskaartUitkomst(int type) {
+        Vak[][] vakken = spelbord.getVakken();
+        String kaartBoodschap = "";
+        switch (type) {
+            case 1:
+                vakken[vakken.length / 2][vakken.length / 2].setAantalKamelen(0);
+                kaartBoodschap = "De Haussa, een vreemde, vijandige stam, overvalt de centrale zoutwinplaats en steelt er alle kamelen.";
+                break;
+            case 2:
+                for (int i = 0; i < vakken.length; i++) {
+                    for (int j = 0; j < vakken[i].length; j++) {
+                        if (vakken[i][j].getGebied().equals(Gebiedskaart.BERG)) {
+                            //extra variabele schatting in Vak?
+                            vakken[i][j].setSchatting(3);
+                        }
+                    }
+                }
+                kaartBoodschap = "In de bergen is zilver ontdekt. De schatting aan het eind van deze ronde is dan ook 3 voor elk bergengebied.";
+                break;
+            case 3:
+                for (int i = 0; i < vakken.length; i++) {
+                    for (int j = 0; j < vakken[i].length; j++) {
+                        if (vakken[i][j].getGebied().equals(Gebiedskaart.NEDERZETTING)) {
+                            vakken[i][j].setSchatting(0);
+                        }
+                    }
+                }
+                kaartBoodschap = "Een vijandelijke stam overvalt alle nederzettingen en gaat er met al het goud en zilver\n"
+                        + "vandoor. Stammen zonder nederzettingen behouden hun geld.";
+                break;
+            case 4:
+                //TODO werk verder uit
+                //Is dit wel een goede oplossing?
+        }
+        
+        //voorlopig
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     *
+     * @return 2D array representatie van het spelbord
+     */
+    public Spelbord getSpelbord() {
+        return spelbord;
+    }
+
+    /**
+     *
+     * @return is het spelbord al opgevuld of niet
+     */
+    public boolean isSpelbordGevuld() {
+        return spelbordGevuld;
+    }
+
+}

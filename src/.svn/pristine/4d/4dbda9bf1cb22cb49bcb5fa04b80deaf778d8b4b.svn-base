@@ -1,0 +1,15 @@
+package domein;
+
+/**
+ * Interface to map methods.
+ *
+ * @author Frederic Everaert
+ * @author Gilles Baert
+ * @author Jonas De Bruycker
+ * @author Sander De Quick
+ */
+public interface Action {
+
+    String doAction();
+
+}

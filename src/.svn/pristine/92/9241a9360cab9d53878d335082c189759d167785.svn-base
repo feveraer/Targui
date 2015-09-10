@@ -1,0 +1,170 @@
+package domain;
+
+import java.util.List;
+import javax.swing.event.ChangeListener;
+
+/**
+ * DomainController of Targui. Gives access to the Game model and player
+ * repository.
+ *
+ * @author Frederic Everaert
+ * @author Gilles Baert
+ * @author Jonas De Bruycker
+ * @author Sander De Quick
+ */
+public class DomainController {
+
+    private final PlayerRepository playerRepo = new PlayerRepository();
+    private Game game;
+
+    public void addRepoChangeListener(ChangeListener l) {
+        playerRepo.addChangeListener(l);
+    }
+
+    public void removeRepoChangeListener(ChangeListener l) {
+        playerRepo.removeChangeListener(l);
+    }
+
+    public void addGameChangeListener(ChangeListener l) {
+        game.addChangeListener(l);
+    }
+
+    public void removeGameChangeListener(ChangeListener l) {
+        game.removeChangeListener(l);
+    }
+
+    public void addPlayer(String player) {
+        playerRepo.addPlayer(player);
+    }
+
+    public void removePlayer(String name) {
+        playerRepo.removePlayer(name);
+    }
+
+    public void setPlayerName(String oldName, String newName) {
+        playerRepo.setPlayerName(oldName, newName);
+    }
+
+    public void setPlayerColor(String name, String color) throws IllegalArgumentException {
+        if (!Color.contains(color.toUpperCase())) {
+            throw new IllegalArgumentException("Unsuppored color");
+        }
+        Color c = Color.valueOf(color.toUpperCase());
+        playerRepo.setPlayerColor(name, c);
+    }
+
+    public void setPlayerSector(String name, int sector) {
+        playerRepo.setPlayerSector(name, sector);
+    }
+
+    public void setPlayerSilver(String name, int silver) {
+        playerRepo.setPlayerSilver(name, silver);
+    }
+
+    public String[][][] getBoard() {
+        String[][][] res = new String[Board.DIM][Board.DIM][Square.NUM_OF_ATTR];
+        Square[][] squares = game.getBoard().getSquares();
+        for (int i = 0; i < squares.length; i++) {
+            for (int j = 0; j < squares[i].length; j++) {
+                if (squares[i][j].getRegion() == null) {
+                    res[i][j][0] = Integer.toString(squares[i][j].getSector());
+                } else {
+                    res[i][j][0] = squares[i][j].getRegion().name();
+                    res[i][j][1] = Integer.toString(squares[i][j].getSector());
+                    res[i][j][3] = Integer.toString(squares[i][j].getCamels());
+                    try {
+                        res[i][j][2] = squares[i][j].getPlayer().getName();
+                    } catch (NullPointerException e) {
+                        res[i][j][2] = "";
+                    }
+                }
+            }
+        }
+
+        return res;
+    }
+
+    public String[][] getPlayers() {
+        List<Player> l = playerRepo.getPlayers();
+        String[][] p = new String[l.size()][Player.NUM_OF_ATTR];
+        for (int i = 0; i < l.size(); i++) {
+            p[i][0] = l.get(i).getName();
+            try {
+                p[i][1] = l.get(i).getColor().name();
+            } catch (NullPointerException e) {
+                p[i][1] = "";
+            }
+            p[i][2] = Integer.toString(l.get(i).getSector());
+            p[i][3] = Integer.toString(l.get(i).getSilver());
+        }
+        return p;
+    }
+
+    public String[] getColors() {
+        return Color.getColors();
+    }
+
+    public void newGame(String[] participants, int numberOfRounds) throws UnsupportedOperationException, IllegalArgumentException {
+        if (game != null) {
+            throw new UnsupportedOperationException("A game is already in progress");
+        }
+        Player[] p = new Player[Game.MAX_PLAYERS];
+        int check = 0;
+        for (Player player : playerRepo.getPlayers()) {
+            for (int i = 0; i < participants.length; i++) {
+                if (player.getName().equals(participants[i])) {
+                    p[i] = player;
+                    check++;
+                }
+            }
+        }
+        if (check == Game.MAX_PLAYERS - 1) {
+            game = new Game(p, numberOfRounds);
+        } else {
+            throw new IllegalArgumentException("One or more participant names are invalid");
+        }
+    }
+
+    public void placeSettlement(String player, int x, int y) throws IllegalArgumentException {
+        Player p = null;
+        for (Player pl : playerRepo.getPlayers()) {
+            if (pl.getName().equals(player)) {
+                p = pl;
+            }
+        }
+        if (p != null) {
+            game.placeSettlement(p, x, y);
+        } else {
+            throw new IllegalArgumentException("Invalid player name");
+        }
+    }
+
+    public int[][] getSectors() {
+        return game.getSectors();
+    }
+
+    public int getNumberOfTurns() {
+        return game.getNumberOfTurns();
+    }
+
+    public String getNextTurn() {
+        return game.getNextTurn();
+    }
+
+    public void move(String player, int xFrom, int yFrom, int xTo, int yTo) {
+
+    }
+
+    public void purchaseCamels(int numberOfCamels) {
+
+    }
+
+    public String[][] getSquaresByPlayer(String player) {
+        throw new UnsupportedOperationException();
+    }
+
+    public String[][] getAdjacentSquares(int x, int y) {
+        throw new UnsupportedOperationException();
+    }
+
+}

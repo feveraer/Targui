@@ -1,0 +1,14 @@
+package domain;
+
+/**
+ * Interface to represent a single turn.
+ *
+ * @author Frederic Everaert
+ * @author Gilles Baert
+ * @author Jonas De Bruycker
+ * @author Sander De Quick
+ */
+interface Turn {
+
+    String getDetails();
+}

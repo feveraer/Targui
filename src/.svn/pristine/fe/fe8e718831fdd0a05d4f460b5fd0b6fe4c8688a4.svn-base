@@ -1,0 +1,26 @@
+package utils;
+
+/**
+ * Klasse voor implementaties van verscheiden sort- en shufflealgoritmen.
+ *
+ * @author Frederic Everaert
+ * @author Gilles Baert
+ * @author Jonas De Bruycker
+ * @author Sander De Quick
+ */
+public class Sorts {
+    
+    /**
+     * Implementatie van het Fisher-Yates-algoritme om een array te schudden.
+     * Heeft mogelijkheid om in groepen te schudden
+     * 
+     * @param array array die geschud moet worden.
+     * @param n groep waarin er geschud moet worden.
+     * @return
+     */
+    public static Object[] shuffle(Object[] array, int n){
+        // Fisher-Yates algoritme
+        return new Object[10];
+    }
+    
+}

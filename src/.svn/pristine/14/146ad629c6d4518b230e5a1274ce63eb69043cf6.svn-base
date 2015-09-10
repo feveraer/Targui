@@ -1,0 +1,15 @@
+package domein;
+
+public class Spel {
+
+    private final Spelbord spelbord = new Spelbord();
+
+    public Vak[][] geefSpel() {
+        return spelbord.geefSpelbord();
+    }
+
+    public Spelbord getSpelbord() {
+        return spelbord;
+    }
+
+}

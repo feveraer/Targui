@@ -1,0 +1,84 @@
+package domein;
+
+/**
+ *
+ * @author Thayli
+ */
+public class SpelerRepository {
+
+    /**
+     *
+     */
+    public static final int MAX_PLAYERS = 4;
+    private final Speler[] spelers = new Speler[MAX_PLAYERS];
+    private final String[] mogKleuren = {"rood", "geel", "blauw", "groen"};
+
+    /**
+     *
+     * @return
+     */
+    public Speler[] geefSpelers() {
+        return spelers;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public String[] getMogKleuren() {
+        return mogKleuren;
+    }
+    
+    /**
+     *
+     * @param naam
+     * @param kleur
+     * @param sector
+     */
+    public void maakSpelerAan(String naam, String kleur, int sector) {
+        boolean juisteKleur = false;
+        String[] gekozenKleuren = new String[MAX_PLAYERS];
+        int[] gekozenSectoren = new int[MAX_PLAYERS];
+        String[] gekozenNamen = new String[MAX_PLAYERS];
+        
+        for (int i = 0; i < MAX_PLAYERS; i++) {
+            if (mogKleuren[i].equals(kleur)) {
+                juisteKleur = true;
+            }
+        }
+        
+        if (sector < 0 || sector > 3 || !juisteKleur) {
+            throw new IllegalArgumentException("Geef een juiste kleur en sector");
+        }
+        
+        for (int i = 0; i < MAX_PLAYERS; i++) {
+            if (spelers[i] != null) {
+                gekozenKleuren[i] = spelers[i].getKleur();
+                gekozenNamen[i] = spelers[i].getNaam();
+                gekozenSectoren[i] = spelers[i].getSector().getSectorNr();
+            }
+        }
+        
+        for (int i = 0; i < MAX_PLAYERS; i++) {
+            if (gekozenNamen[i] != null) {
+                if (gekozenNamen[i].equals(naam)) {
+                    throw new IllegalArgumentException("Geef een unieke naam");
+                }
+                else if (gekozenKleuren[i].equals(kleur)) {
+                    throw new IllegalArgumentException("Geef een unieke kleur");
+                }
+                else if (gekozenSectoren[i] == sector) {
+                    throw new IllegalArgumentException("Geef een unieke sector");
+                }
+            }
+        }
+        
+        for (int i = 0; i < MAX_PLAYERS; i++) {
+            if (spelers[i] == null) {
+                spelers[i] = new Speler(naam, kleur, sector);
+                return;
+            }
+        }
+        throw new UnsupportedOperationException("Maximum number of players (" + MAX_PLAYERS + ") reached.");
+    }
+}

@@ -1,0 +1,119 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package persistence;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+/**
+ *
+ * @author Sander
+ */
+public class RoundMapper {
+
+    /**
+     *
+     * @param roundConf
+     */
+    public void saveRounds(String[][] roundConf) {
+        String[] values = new String[roundConf.length];
+        for (int i = 0; i < roundConf.length; i++) {
+            values[i] = "";
+            for (int j = 0; j < roundConf[i].length; j++) {
+                values[i] += "'" + roundConf[i][j] + "'";
+                if (j < roundConf[i].length - 1) {
+                    values[i] += ",";
+                }
+            }
+        }
+
+        try {
+            String host = "jdbc:mysql://localhost:3306/targui";
+            String uName = "root";
+            String uPass = "root";
+            Connection con = DriverManager.getConnection(host, uName, uPass);
+            Statement stmt = con.createStatement();
+            for (String value : values) {
+                String SQL = "INSERT INTO round VALUES (" + value + ")";
+                stmt.executeUpdate(SQL);
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(GameMapper.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    /**
+     *
+     * @return
+     */
+    public String getNextRoundId() {
+        String roundId = "";
+        try {
+            String host = "jdbc:mysql://localhost:3306/targui";
+            String uName = "root";
+            String uPass = "root";
+            Connection con = DriverManager.getConnection(host, uName, uPass);
+            Statement stmt = con.createStatement();
+            String SQL = "SELECT MAX(roundId) + 1 FROM round";
+            ResultSet rs = stmt.executeQuery(SQL);
+            if (rs.next()) {
+                roundId = rs.getString(1);
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(PersistenceController.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        if (roundId == null) {
+            return "0";
+        } else {
+            return roundId;
+        }
+    }
+
+    /**
+     *
+     * @param gameId
+     * @return
+     */
+    public String[][] getRounds(int gameId) {
+        try {
+            String host = "jdbc:mysql://localhost:3306/targui";
+            String uName = "root";
+            String uPass = "root";
+            Connection con = DriverManager.getConnection(host, uName, uPass);
+
+            Statement stmt = con.createStatement();
+            String SQL = "SELECT * FROM round WHERE gamegameId = " + gameId;
+            ResultSet rs = stmt.executeQuery(SQL);
+
+            Statement stmt2 = con.createStatement();
+            String SQL2 = "SELECT COUNT(*) FROM round WHERE gamegameID = " + gameId;
+            ResultSet rs2 = stmt2.executeQuery(SQL2);
+            int nrOfRounds = 0;
+            if (rs2.next()) {
+                nrOfRounds = rs2.getInt(1);
+            }
+            String[][] roundConf = new String[nrOfRounds][4];
+            int i = 0;
+            while (rs.next()) {
+                roundConf[i][0] = rs.getString("roundId");
+                roundConf[i][1] = rs.getString("roundNr");
+                roundConf[i][2] = rs.getString("fortune");
+                roundConf[i][3] = rs.getString("gamegameId");
+                i++;
+            }
+            return roundConf;
+
+        } catch (SQLException err) {
+            err.printStackTrace();
+        }
+        return null;
+    }
+}
